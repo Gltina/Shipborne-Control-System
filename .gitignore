@@ -50,3 +50,17 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# Some folder we dont need
+DebugConfig/
+.vscode/
+Objects/
+RTE/
+Listings/
+
+
+# 
+*.scvd
+*.txt
+*.ini
+*.htm
