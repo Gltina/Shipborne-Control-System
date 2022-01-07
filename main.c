@@ -1,0 +1,39 @@
+//#include "SysTick/SysTick.h"
+#include "DeviceManage/deviceManage.h"
+
+int main(void)
+{
+    //while(1){}
+	init_device();
+    
+    //printf("System Initialization Done!\r\n");
+    
+    //SysTick_Init();
+    
+    //int16_t i = 0;
+    
+	while (1)
+	{
+        //read_device_data();
+        
+        //report_device_data();
+        
+        //DELAY_MS(500);
+        
+        //Servo_Control(0);
+        //DELAY_MS(1500);
+        //Servo_Control(180);
+        //DELAY_MS(1500);
+		
+        //DELAY_MS(1000);
+        //DELAY_MS(1000);
+        //DELAY_MS(1000);
+        //LED2_ON; // ÁÁ
+        //DELAY_MS(1000);
+        //LED2_OFF; // Ãð
+        
+	}
+
+    
+	return 0;
+}
