@@ -31,7 +31,6 @@ uint32_t Usart_SendHalfWord( USART_TypeDef * pUSARTx, uint16_t c);
 uint32_t Usart_SendString(USART_TypeDef * pUSARTx, char *str); 
 
 int fputc(int ch, FILE *f);
-
 int fgetc(FILE *f);
 
 #endif

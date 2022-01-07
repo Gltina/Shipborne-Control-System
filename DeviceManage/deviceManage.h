@@ -2,14 +2,14 @@
 #define _DEVICEMANAGE_H_
 #include "string.h"
 
-
 #include "../stm32f10x_it.h"
 
 #include "../delay/delay.h"
 
 #include "../I2C/i2c.h"
 #include "../USART/usart.h"
-#include "../WaterPress/waterpress.h"
+#include "../WaterTank/waterTank.h"
+#include "../WaterPress/waterPress.h"
 #include "../MPU6050/mpu6050.h"
 #include "../DS18B20/ds18b20.h"
 #include "../S201C/s201c.h"
@@ -26,16 +26,16 @@ struct device_data_s
     short Acel[3];
     short Gyro[3];
     //float Temp;
-    
+
     // 温度传感器, °C, 4 byte
     float temperature;
-    
+
     // 超声波传感器, 4 byte
     float distance;
-    
+
     // 水深数值 (cm) , 4 byte
     float water_depth;
-    
+
     // 水流速度 (L/min), 4 byte
     float water_speed;
 };

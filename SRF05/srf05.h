@@ -5,9 +5,9 @@
 #include "../delay/delay.h"
 
 #define SRF05_CLOCK_RCC RCC_APB2Periph_GPIOA
-#define GPIOx GPIOA
-#define Trig_Pin GPIO_Pin_4
-#define Echo_Pin GPIO_Pin_6
+#define SRF05_GPIOx GPIOA
+#define SRF05_Trig_Pin GPIO_Pin_4
+#define SRF05_Echo_Pin GPIO_Pin_4
 
 // Echo1 TIM3_Channel_1 PA6
 

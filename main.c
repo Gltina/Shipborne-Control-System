@@ -1,16 +1,10 @@
-//#include "SysTick/SysTick.h"
 #include "DeviceManage/deviceManage.h"
 
 int main(void)
 {
-    //while(1){}
-	init_device();
+    init_device();
     
     //printf("System Initialization Done!\r\n");
-    
-    //SysTick_Init();
-    
-    //int16_t i = 0;
     
 	while (1)
 	{
@@ -25,15 +19,18 @@ int main(void)
         //Servo_Control(180);
         //DELAY_MS(1500);
 		
-        //DELAY_MS(1000);
-        //DELAY_MS(1000);
+        DELAY_MS(1000);
+        
+        //printf("Hello world\r\n");
+        
+        DELAY_MS(1000);
+        
         //DELAY_MS(1000);
         //LED2_ON; // ÁÁ
         //DELAY_MS(1000);
         //LED2_OFF; // Ãð
         
 	}
-
     
-	return 0;
+    return 0;
 }

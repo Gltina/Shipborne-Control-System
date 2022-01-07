@@ -489,16 +489,6 @@
               <FilePath>.\delay\delay.h</FilePath>
             </File>
             <File>
-              <FileName>waterpress.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\WaterPress\waterpress.c</FilePath>
-            </File>
-            <File>
-              <FileName>waterpress.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\WaterPress\waterpress.h</FilePath>
-            </File>
-            <File>
               <FileName>algorithm.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Algorithm\algorithm.c</FilePath>
@@ -517,6 +507,26 @@
               <FileName>s201c.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\S201C\s201c.h</FilePath>
+            </File>
+            <File>
+              <FileName>waterTank.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\WaterTank\waterTank.c</FilePath>
+            </File>
+            <File>
+              <FileName>waterTank.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\WaterTank\waterTank.h</FilePath>
+            </File>
+            <File>
+              <FileName>waterPress.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\WaterPress\waterPress.c</FilePath>
+            </File>
+            <File>
+              <FileName>waterPress.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\WaterPress\waterPress.h</FilePath>
             </File>
           </Files>
         </Group>

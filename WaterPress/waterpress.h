@@ -1,5 +1,5 @@
-#ifndef _WATER_PRESS_H_
-#define _WATER_PRESS_H_
+#ifndef _WATERPRESS_H_
+#define _WATERPRESS_H_
 
 #include <stdlib.h>
 #include <math.h>
@@ -20,7 +20,5 @@ float Get_WaterPress_Filtered();
 //void ADC_NVIC_Config(void);
 
 float ADC2WaterDepth(uint16_t);
-
-
 
 #endif

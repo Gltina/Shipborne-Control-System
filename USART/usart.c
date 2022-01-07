@@ -47,7 +47,7 @@ void USART_Configuration(void)
 
 	// 将USART Rx的GPIO配置为浮空输入模式
 	GPIO_InitStructure.GPIO_Pin = USART_RX_GPIO_PIN;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;//GPIO_Mode_IN_FLOATING;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
 	GPIO_Init(USART_RX_GPIO_PORT, &GPIO_InitStructure);
     
     // AUX
@@ -141,7 +141,6 @@ int fputc(int ch, FILE *f)
     
     // 直到为1
     //while(GPIO_ReadInputDataBit(USART_AUX_GPIO_PORT, USART_AUX_GPIO_PIN) == 0){}    
-        
     return ch;
 }
 

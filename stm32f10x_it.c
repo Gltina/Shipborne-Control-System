@@ -28,10 +28,6 @@
 
 #include "stm32f10x_it.h"
 
-//#include "MPU6050/mpu6050.h"
-//#include "WaterPress/waterpress.h"
-
-#include "S201C/s201c.h"
 #include "DeviceManage/deviceManage.h"
 
 /** @addtogroup STM32F10x_StdPeriph_Template
@@ -64,8 +60,6 @@ void TIM2_IRQHandler(void)
 	// S201C
 	static uint8_t S201C_STATUS = 0;	   //存储捕获状态，state=0表示未捕获到第一个上升沿，state=1表示已经捕获到第一个上升沿
 	static uint32_t S201C_TIM_CAPTURE = 0; //存储TIM2计数寄存器溢出次数
-
-	
 
 	if (TIM_GetITStatus(S201C_TIMX, TIM_IT_Update) != RESET) //发生计数器溢出更新中断
 	{
@@ -120,15 +114,16 @@ void TIM2_IRQHandler(void)
             根据公式: 频率(f)=5*Q*s - 3, Q为流量,单位是(L/min). s为秒, 单位是秒
             */
 			//printf("%.3fL/min\r\n", frequent_input/5.0/s - 3.0);
-            device_data.water_speed = frequent_input / 5.0 / s - 3.0;
+			device_data.water_speed = frequent_input / 5.0 / s - 3.0;
 		}
 	}
 
 	// 数据发送模块
-	const uint32_t TIM_capture_M = 25;// 25*200 = 5000ms = 5s
-    
-	if (REPORT_TIM_CAPTURE < TIM_capture_M) 
-	{}
+	const uint32_t TIM_capture_M = 25; // 25*200 = 5000ms = 5s
+
+	if (REPORT_TIM_CAPTURE < TIM_capture_M)
+	{
+	}
 	// 超时处理, 此时出现信号接收异常的情况. 应该采用应急措施
 	else if (REPORT_TIM_CAPTURE < UINT32_MAX)
 	{
@@ -266,15 +261,25 @@ void USART1_IRQHandler(void)
 		if (result == 'r')
 		{
 			LED_RED;
+            WaterTank_IN_Open();
 		}
 		else if (result == 'g')
 		{
 			LED_GREEN;
+            WaterTank_IN_Close();
 		}
 		else if (result == 'b')
 		{
 			LED_BLUE;
-		}
+            WaterTank_OUT_Open();
+        
+        }
+        else if(result == 'a')
+        {
+            LED_RGBOFF;
+            WaterTank_OUT_Close();
+        }
+            
 		REPORT_DATA_STATUS = 0;
 	}
 

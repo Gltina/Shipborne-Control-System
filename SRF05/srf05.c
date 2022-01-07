@@ -14,13 +14,13 @@ u32 TIM3_Ultrasonic_FLAG1, Ultrasonic_Time1, Ultrasonic_Tim_old1;
 //uint16_t Get_Distance(float * distance_cm)
 //{
 //    *distance_cm = 0;
-//    
+//
 //    DELAY_US(500);
 
 //    SRF05_Trig();
-//    
+//
 //    *distance_cm = (float)Ultrasonic_Time1 / 58.0;
-//    
+//
 //    return 0;
 //}
 
@@ -29,17 +29,17 @@ void SRF05_Init(void)
     GPIO_InitTypeDef GPIO_InitStructure;
     RCC_APB2PeriphClockCmd(SRF05_CLOCK_RCC, ENABLE);
 
-    GPIO_InitStructure.GPIO_Pin = Trig_Pin;
+    GPIO_InitStructure.GPIO_Pin = SRF05_Trig_Pin;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-    GPIO_Init(GPIOx, &GPIO_InitStructure);
-    GPIO_ResetBits(GPIOx, Trig_Pin);
-    
-    GPIO_InitStructure.GPIO_Pin = Echo_Pin;
+    GPIO_Init(SRF05_GPIOx, &GPIO_InitStructure);
+    GPIO_ResetBits(SRF05_GPIOx, SRF05_Trig_Pin);
+
+    GPIO_InitStructure.GPIO_Pin = SRF05_Echo_Pin;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPD;
-    GPIO_Init(GPIOx, &GPIO_InitStructure);
-    GPIO_ResetBits(GPIOx, Echo_Pin);
-    
+    GPIO_Init(SRF05_GPIOx, &GPIO_InitStructure);
+    GPIO_ResetBits(SRF05_GPIOx, SRF05_Echo_Pin);
+
     TIM3_SRF05_Init(0xffff, 72 - 1);
 }
 
@@ -49,7 +49,7 @@ void TIM3_SRF05_Init(u16 arr, u16 psc)
 {
     //printf("xxxx=%d\r\n",arr);
     //GPIO_InitTypeDef GPIO_InitStructure;
-    
+
     //TIM_ICInitTypeDef TIM_ICInitStructure;
     //NVIC_InitTypeDef NVIC_InitStructure;
 
@@ -67,21 +67,21 @@ void TIM3_SRF05_Init(u16 arr, u16 psc)
     TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
     TIM_TimeBaseInit(TIM3, &TIM_TimeBaseStructure);
 
-//    TIM_ICInitStructure.TIM_Channel = TIM_Channel_1;
-//    TIM_ICInitStructure.TIM_ICPolarity = TIM_ICPolarity_Rising;
-//    TIM_ICInitStructure.TIM_ICSelection = TIM_ICSelection_DirectTI;
-//    TIM_ICInitStructure.TIM_ICPrescaler = TIM_ICPSC_DIV1;
-//    TIM_ICInitStructure.TIM_ICFilter = 0x01;
-//    TIM_ICInit(TIM3, &TIM_ICInitStructure);
+    //    TIM_ICInitStructure.TIM_Channel = TIM_Channel_1;
+    //    TIM_ICInitStructure.TIM_ICPolarity = TIM_ICPolarity_Rising;
+    //    TIM_ICInitStructure.TIM_ICSelection = TIM_ICSelection_DirectTI;
+    //    TIM_ICInitStructure.TIM_ICPrescaler = TIM_ICPSC_DIV1;
+    //    TIM_ICInitStructure.TIM_ICFilter = 0x01;
+    //    TIM_ICInit(TIM3, &TIM_ICInitStructure);
 
-//    NVIC_InitStructure.NVIC_IRQChannel = TIM3_IRQn;
-//    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
-//    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
-//    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-//    NVIC_Init(&NVIC_InitStructure);
+    //    NVIC_InitStructure.NVIC_IRQChannel = TIM3_IRQn;
+    //    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+    //    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+    //    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+    //    NVIC_Init(&NVIC_InitStructure);
 
-//    TIM_ITConfig(TIM3, TIM_IT_CC1 | TIM_IT_Update, ENABLE);
-//    TIM_Cmd(TIM3, DISABLE);
+    //    TIM_ITConfig(TIM3, TIM_IT_CC1 | TIM_IT_Update, ENABLE);
+    //    TIM_Cmd(TIM3, DISABLE);
 }
 
 //void SRF05_Trig(void)
@@ -89,7 +89,7 @@ void TIM3_SRF05_Init(u16 arr, u16 psc)
 //    GPIO_SetBits(GPIOx, Trig_Pin);
 //    DELAY_US(10);
 //    GPIO_ResetBits(GPIOx, Trig_Pin);
-//    
+//
 //    DELAY_US(500);
 //    //GPIO_ResetBits(GPIOx, Echo_Pin);
 //    TIM3->CNT = 0;
@@ -98,38 +98,41 @@ void TIM3_SRF05_Init(u16 arr, u16 psc)
 
 void right_TRIG_Start(void)
 {
-	GPIO_SetBits(GPIOx,Trig_Pin);
+    GPIO_SetBits(SRF05_GPIOx, SRF05_Trig_Pin);
     DELAY_US(10);
-	GPIO_ResetBits(GPIOx,Trig_Pin);
+    GPIO_ResetBits(SRF05_GPIOx, SRF05_Trig_Pin);
     DELAY_MS(8);
 }
 
 float Measure_distance(void)
 {
     printf("1\r\n");
-	while (GPIO_ReadInputDataBit(GPIOx,Echo_Pin) == 1)
-    {} //等到ECHO为低电平，即返回的值成功后，才启动超声波。
-    
-	printf("2\r\n");
+    while (GPIO_ReadInputDataBit(SRF05_GPIOx, SRF05_Echo_Pin) == 1)
+    {
+    } //等到ECHO为低电平，即返回的值成功后，才启动超声波。
+
+    printf("2\r\n");
     right_TRIG_Start();
-   
-	printf("3\r\n");
-    while (GPIO_ReadInputDataBit(GPIOx,Echo_Pin) == 0)
-    {}//等到ECHO接收返回数据时，计时。
-        TIM_SetCounter(TIM3,0); //清零计数器
-        
+
+    printf("3\r\n");
+    while (GPIO_ReadInputDataBit(SRF05_GPIOx, SRF05_Echo_Pin) == 0)
+    {
+    }                        //等到ECHO接收返回数据时，计时。
+    TIM_SetCounter(TIM3, 0); //清零计数器
+
     printf("4\r\n");
-    TIM_Cmd(TIM3, ENABLE);  //使能定时器,开始计数
-        
+    TIM_Cmd(TIM3, ENABLE); //使能定时器,开始计数
+
     printf("5\r\n");
     //uint16_t reture_value = 0;
-    while (GPIO_ReadInputDataBit(GPIOx,Echo_Pin) == 1)
-    {}//等到ECHO为低电平才停止计时
-    
-    TIM_Cmd(TIM3, DISABLE);	//失能定时器,截止计数	
-        
-	printf("6\r\n");
-	return 	(TIM_GetCounter(TIM3))/1000000.0*340/2 *100;//用时间计时单位cm
+    while (GPIO_ReadInputDataBit(SRF05_GPIOx, SRF05_Echo_Pin) == 1)
+    {
+    } //等到ECHO为低电平才停止计时
+
+    TIM_Cmd(TIM3, DISABLE); //失能定时器,截止计数
+
+    printf("6\r\n");
+    return (TIM_GetCounter(TIM3)) / 1000000.0 * 340 / 2 * 100; //用时间计时单位cm
 }
 
 //void TIM3_IRQHandler(void)
@@ -145,14 +148,14 @@ float Measure_distance(void)
 
 //        TIM_ClearITPendingBit(TIM3, TIM_IT_Update); //清除中断标志位
 //    }
-//    
+//
 //    if (TIM_GetITStatus(TIM3, TIM_IT_CC1) != RESET) //发生捕获事件
 //    {
 //        TIM3_Ultrasonic_VAL = TIM_GetCapture1(TIM3);
-//        
+//
 //        if (TIM3_Ultrasonic_FLAG1 == 1) //已经捕获到一个上升沿，又捕获的是下降沿
 //        {
-//            
+//
 //            TIM_OC1PolarityConfig(TIM3, TIM_ICPolarity_Rising); //设置为上升沿捕获，为下次捕获准备
 
 //            if (TIM3_Ultrasonic_VAL > 58 && TIM3_Ultrasonic_VAL < 29000) //得到总的高电平的时间,抛弃(1cm-500cm)*58us以外的错误值,实际范围(2cm-4500cm)
@@ -164,7 +167,7 @@ float Measure_distance(void)
 //            {
 //                Ultrasonic_Time1 = Ultrasonic_Tim_old1; //错误值，用旧的数据
 //            }
-//            
+//
 //            TIM3_Ultrasonic_FLAG1 = 0; //捕获标志位清零
 //            TIM_Cmd(TIM3, DISABLE);    //关定时器，省的一直溢出
 //        }

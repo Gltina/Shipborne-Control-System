@@ -44,7 +44,10 @@ int8_t init_device()
     //WaterPress_Init();
     
     // 水流计速器
-    S201C_Init();
+    //S201C_Init();
+    
+    // 水箱控制模块
+    WaterTank_Init();
     
     return 0;
 }
@@ -91,7 +94,7 @@ void report_device_data()
     
     //clear_device_data();
     
-    test_send();
+    //test_send();
     //printf("%c", 'A');
 }
 
