@@ -3,10 +3,10 @@
 
 #include "stm32f10x.h"
 
-#define WATERTANK_CLOCK_RCC RCC_APB2Periph_GPIOB
-#define WATERTANK_GPIOx GPIOB
-#define WATERTANK_IN_Pin GPIO_Pin_3
-#define WATERTANK_OUT_Pin GPIO_Pin_4
+#define WATERTANK_CLOCK_RCC RCC_APB2Periph_GPIOA
+#define WATERTANK_GPIOx GPIOA
+#define WATERTANK_IN_Pin GPIO_Pin_2
+#define WATERTANK_OUT_Pin GPIO_Pin_3
 
 void WaterTank_Init();
 

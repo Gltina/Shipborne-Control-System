@@ -117,7 +117,7 @@ uint32_t Usart_SendHalfWord(USART_TypeDef *pUSARTx, uint16_t c)
 uint32_t Usart_SendString(USART_TypeDef *pUSARTx, char *str)
 {
 	uint32_t i = 0;
-	for (uint32_t i = 0; str[i] != '\0'; ++i)
+	for (i = 0; str[i] != '\0'; ++i)
 	{
 		Usart_SendByte(pUSARTx, *(str + i));
 	}
@@ -128,6 +128,20 @@ uint32_t Usart_SendString(USART_TypeDef *pUSARTx, char *str)
     // 直到为1
     //while(GPIO_ReadInputDataBit(USART_AUX_GPIO_PORT, USART_AUX_GPIO_PIN) == 0){}
 	
+    return i;
+}
+
+uint32_t Usart_SendByLength(USART_TypeDef *pUSARTx, char *str, uint32_t length)
+{
+    uint32_t i = 0;
+	for (i = 0; i < length; ++i)
+	{
+		Usart_SendByte(pUSARTx, *(str + i));
+	}
+
+	/*等待发送完成 */
+	while (USART_GetFlagStatus(pUSARTx, USART_FLAG_TC) == RESET) {}
+    
     return i;
 }
 

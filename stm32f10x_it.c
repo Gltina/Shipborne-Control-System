@@ -24,10 +24,7 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
-#include <limits.h>
-
 #include "stm32f10x_it.h"
-
 #include "DeviceManage/deviceManage.h"
 
 /** @addtogroup STM32F10x_StdPeriph_Template
@@ -44,6 +41,9 @@
 /******************************************************************************/
 /*            Cortex-M3 Processor Exceptions Handlers                         */
 /******************************************************************************/
+
+// From deviceManage.h (from deviceManage.c)
+extern device_data_s device_data;
 
 // USART 数据发送模块
 static int8_t REPORT_DATA_STATUS = 0;	// 数据发送状态
@@ -114,7 +114,7 @@ void TIM2_IRQHandler(void)
             根据公式: 频率(f)=5*Q*s - 3, Q为流量,单位是(L/min). s为秒, 单位是秒
             */
 			//printf("%.3fL/min\r\n", frequent_input/5.0/s - 3.0);
-			device_data.water_speed = frequent_input / 5.0 / s - 3.0;
+			device_data.WaterSpeed = frequent_input / 5.0 / s - 3.0;
 		}
 	}
 
@@ -255,6 +255,7 @@ void USART1_IRQHandler(void)
 
 	if (status == 1 || status == 2)
 	{
+        LED_RGBOFF;
 		char result;
 		result = USART_ReceiveData(USARTx);
 
@@ -272,12 +273,17 @@ void USART1_IRQHandler(void)
 		{
 			LED_BLUE;
             WaterTank_OUT_Open();
-        
         }
         else if(result == 'a')
         {
             LED_RGBOFF;
             WaterTank_OUT_Close();
+        }
+        else if(result == 'q')
+        {
+            LED_YELLOW;
+            WaterTank_OUT_Close();
+            WaterTank_IN_Close();
         }
             
 		REPORT_DATA_STATUS = 0;

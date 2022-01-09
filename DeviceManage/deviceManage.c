@@ -1,14 +1,23 @@
 #include "deviceManage.h"
 
-struct device_data_s device_data;
-uint8_t ucDs18b20Id[8];
+//extern struct device_data_s device_data;
 
+device_data_s device_data;
+device_status_s device_status;
 
-//void init_device_status(int *device, int size)
-//{
-//    for (int i = 0; i < size; i++)
-//        device[i] = 0;
-//}
+void init_device_status()
+{
+    memset(&device_data, 0, sizeof(device_data_s));
+    
+    /*
+    memset(&device_data.Accelerate, '0', sizeof(short)*3);
+    memset(&device_data.Gyroscope, '0', sizeof(short)*3);
+    device_data.WaterDepth = 0;
+    device_data.Temperature = 0;
+    device_data.WaterSpeed = 0;
+    device_data.WaterTankDepth = 0;
+    */
+}
 
 int8_t init_device()
 {
@@ -21,18 +30,18 @@ int8_t init_device()
     LED_GPIO_Config();
 
     // I2C
-    //I2C_Bus_Init();
+    I2C_Bus_Init();
 
     // DS18B20
-    //while (DS18B20_Init())
-    //{
-    //    printf("\r\n no ds18b20 exit \r\n");
-    //}
-    //DS18B20_ReadId(ucDs18b20Id);
+    while (DS18B20_Init())
+    {
+        printf("\r\n no ds18b20 exit \r\n");
+    }
+    DS18B20_ReadId(device_data.DS18B20ID);
 
     // MPU6050
-    //MPU6050_Init();
-    //MPU6050ReadID();
+    MPU6050_Init();
+    MPU6050ReadID();
     
     // 超声波传感器
     //SRF05_Init();
@@ -47,7 +56,7 @@ int8_t init_device()
     //S201C_Init();
     
     // 水箱控制模块
-    WaterTank_Init();
+    //WaterTank_Init();
     
     return 0;
 }
@@ -58,12 +67,12 @@ void read_device_data()
     //int8_t status;
     
     // 温度传感器
-    //device_data.temperature =
-    //    DS18B20_GetTemp_MatchRom(ucDs18b20Id);
+    device_data.Temperature =
+        DS18B20_GetTemp_MatchRom(device_data.DS18B20ID);
 
     // 陀螺仪/加速度传感器
-    //MPU6050ReadAcc(device_data.Acel);
-    //MPU6050ReadGyro(device_data.Gyro);
+    MPU6050ReadAcc(device_data.Accelerate);
+    MPU6050ReadGyro(device_data.Gyroscope);
     //MPU6050_ReturnTemp(&device_data.Temp);
     
     // 超声波传感器
@@ -80,10 +89,10 @@ void read_device_data()
 
 void report_device_data()
 {
-    //printf("\r\nT:%.2f C\r\n", device_data.temperature);
+    printf("\r\nT:%.2f C\r\n", device_data.Temperature);
     
-    //printf("%d %d %d\r\n", device_data.Acel[0], device_data.Acel[1], device_data.Acel[2]);
-    //printf("%d %d %d\r\n", device_data.Gyro[0], device_data.Gyro[1], device_data.Gyro[2]);
+    printf("%d %d %d\r\n", device_data.Accelerate[0], device_data.Accelerate[1], device_data.Accelerate[2]);
+    printf("%d %d %d\r\n", device_data.Gyroscope[0], device_data.Gyroscope[1], device_data.Gyroscope[2]);
     //printf("%f\r\n", device_data.Temp);
     
     //printf("D:%fcm\r\n", device_data.distance);
@@ -95,12 +104,17 @@ void report_device_data()
     //clear_device_data();
     
     //test_send();
-    //printf("%c", 'A');
+    
+    // 输出44
+    //printf("%d\r\n", sizeof(device_data));
+    //printf("%d\r\n", sizeof(device_data.device_status));
+    
+    //encap_msg_sending();
 }
 
 void clear_device_data()
 {
-    device_data.water_speed = 0.0;
+    device_data.WaterSpeed = 0.0;
 }
 
 void test_send()
@@ -124,4 +138,38 @@ void test_send()
     
     //DELAY_MS(2000);
     //printf("%d\r\n", strlen(test_send_data));
+}
+
+static int32_t send_index = 0;
+
+void encap_msg_sending()
+{
+    // 设置潜艇编号
+    device_data.device_ID = 99;
+    // 设置发送数据长度(包括传感器数据和设备状态数据)
+    device_data.data_length =
+        sizeof(device_data_s) + sizeof(device_status_s);
+    
+    // 准备发送数据
+    sending_content_s sc;
+    sc.device_data_p = &device_data;
+    sc.device_status_p = &device_status;
+    
+    sending_package_s sp;
+    
+    sp.header = '\n';
+    sp.content_p = &sc;
+    //sp.tail = '\n';
+    
+    // 发送
+    Usart_SendByte(USARTx, sp.header);
+    Usart_SendByLength(USARTx,(char *) sp.content_p->device_data_p, sizeof(device_data_s));
+    Usart_SendByLength(USARTx,(char *) sp.content_p->device_status_p, sizeof(device_status_s));
+    //Usart_SendByte(USARTx, sp.tail);
+    
+//    send_index++;
+//    if(send_index == 3)
+//    {
+//        while(1){}
+//    }
 }

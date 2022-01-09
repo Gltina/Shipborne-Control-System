@@ -56,12 +56,16 @@ uint8_t MPU6050ReadID(void)
     MPU6050_ReadData(MPU6050_RA_WHO_AM_I, &Re, 1); //¶ÁÆ÷¼þµØÖ·
     if (Re != 0x68)
     {
+        #if MPU_DEBUG_ON
         MPU_ERROR("MPU6050 dectected error!\r\n");
+        #endif
         return 1;
     }
     else
     {
+        #if MPU_DEBUG_ON
         MPU_INFO("MPU6050 ID = %d\r\n", Re);
+        #endif
         return 0;
     }
 }

@@ -21,7 +21,7 @@
 #define I2CT_LONG_TIMEOUT         ((uint32_t)(10 * I2CT_FLAG_TIMEOUT))
 
 /*ÐÅÏ¢Êä³ö*/
-#define MPU_DEBUG_ON         1
+#define MPU_DEBUG_ON         0
 
 #define MPU_INFO(fmt,arg...)           printf("<<-MPU-INFO->> "fmt"\n",##arg)
 #define MPU_ERROR(fmt,arg...)          printf("<<-MPU-ERROR->> "fmt"\n",##arg)
