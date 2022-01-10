@@ -4,13 +4,15 @@ int main(void)
 {
     init_device();
     
+    //DELAY_MS(1000);
+    
     //printf("System Initialization Done!\r\n");
     
 	while (1)
 	{
-        read_device_data();
+        //read_device_data();
         
-        report_device_data();
+        //report_device_data();
         
         //DELAY_MS(500);
         
@@ -25,10 +27,10 @@ int main(void)
         
         //DELAY_MS(1000);
         
-        DELAY_MS(1000);
-        LED2_ON; // ÁÁ
-        DELAY_MS(1000);
-        LED2_OFF; // Ãð
+//        DELAY_MS(1000);
+//        LED2_ON; // ÁÁ
+//        DELAY_MS(1000);
+//        LED2_OFF; // Ãð
         
 	}
     

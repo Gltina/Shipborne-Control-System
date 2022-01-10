@@ -6,14 +6,15 @@ void WaterTank_Init()
     GPIO_InitTypeDef GPIO_InitStructure;
 
     GPIO_InitStructure.GPIO_Pin = WATERTANK_IN_Pin;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_10MHz;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
     GPIO_Init(GPIOA, &GPIO_InitStructure);
-    GPIO_ResetBits(WATERTANK_GPIOx, WATERTANK_IN_Pin);
-
+    
     GPIO_InitStructure.GPIO_Pin = WATERTANK_OUT_Pin;
     GPIO_Init(GPIOA, &GPIO_InitStructure);
-    GPIO_ResetBits(WATERTANK_GPIOx, WATERTANK_OUT_Pin);
+    
+    WaterTank_IN_Close();
+    WaterTank_OUT_Close();
 }
 
 void WaterTank_IN_Open()
@@ -33,19 +34,4 @@ void WaterTank_OUT_Open()
 void WaterTank_OUT_Close()
 {
     GPIO_ResetBits(WATERTANK_GPIOx, WATERTANK_OUT_Pin);
-}
-
-void test()
-{
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
-    GPIO_InitTypeDef GPIO_InitStructure;
-
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-    GPIO_Init(GPIOC, &GPIO_InitStructure);
-    
-    GPIO_ResetBits(GPIOC, GPIO_Pin_13);
-    
-    
 }

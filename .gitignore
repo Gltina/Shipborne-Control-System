@@ -58,7 +58,8 @@ Objects/
 RTE/
 Listings/
 __pycache__/
-
+*.Wqs
+*Lei\ Li
 
 # 
 *.scvd

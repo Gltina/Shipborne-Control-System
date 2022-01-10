@@ -56,7 +56,7 @@ void TIM2_IRQHandler(void)
 	// 2000 次是一个周期
 	// 记数频率为 72000000/7200 = 10000次 , 即10000次为1s
 	// 验证: 2000*7200 / 36000000 = 0.2s
-
+    
 	// S201C
 	static uint8_t S201C_STATUS = 0;	   //存储捕获状态，state=0表示未捕获到第一个上升沿，state=1表示已经捕获到第一个上升沿
 	static uint32_t S201C_TIM_CAPTURE = 0; //存储TIM2计数寄存器溢出次数
@@ -77,14 +77,17 @@ void TIM2_IRQHandler(void)
 		{
 			REPORT_DATA_STATUS = 1; // 数据已发送
 			REPORT_ERROR = 0;		// 还未触发报警
-			REPORT_TIM_CAPTURE = 0; // 发送后等待周期置空
+			//REPORT_TIM_CAPTURE = 0; // 发送后等待周期置空
 
 			LED_RGBOFF;
 
 			// 关闭计时, 避免发送时间过长导致再次溢出
 			TIM_Cmd(S201C_TIMX, DISABLE);
-			report_device_data();
+			//report_device_data();
+            read_device_data();
+            encap_msg_sending();
 			TIM_Cmd(S201C_TIMX, ENABLE);
+            REPORT_TIM_CAPTURE = 0;
 		}
 		else if (REPORT_DATA_STATUS == 1) // 发送后仅计时
 		{
@@ -123,6 +126,7 @@ void TIM2_IRQHandler(void)
 
 	if (REPORT_TIM_CAPTURE < TIM_capture_M)
 	{
+        
 	}
 	// 超时处理, 此时出现信号接收异常的情况. 应该采用应急措施
 	else if (REPORT_TIM_CAPTURE < UINT32_MAX)
@@ -252,11 +256,14 @@ void USART1_IRQHandler(void)
 		USART_ClearFlag(USARTx, USART_FLAG_ORE);
 		status = 2;
 	}
-
+    
+    // 收到即触发
 	if (status == 1 || status == 2)
 	{
         LED_RGBOFF;
+        
 		char result;
+        // TODO 全收
 		result = USART_ReceiveData(USARTx);
 
 		if (result == 'r')
@@ -285,7 +292,13 @@ void USART1_IRQHandler(void)
             WaterTank_OUT_Close();
             WaterTank_IN_Close();
         }
-            
+        else
+        {
+            //uint32_t receive_delay = TIM_GetCapture4(S201C_TIMX) + REPORT_TIM_CAPTURE * 2000;
+            //printf("%.2f got#", receive_delay/ 10000.0);
+            LED_GREEN;
+        }
+                    
 		REPORT_DATA_STATUS = 0;
 	}
 

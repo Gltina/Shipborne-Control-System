@@ -8,6 +8,7 @@ device_status_s device_status;
 void init_device_status()
 {
     memset(&device_data, 0, sizeof(device_data_s));
+    memset(&device_status, 0, sizeof(device_status_s));
     
     /*
     memset(&device_data.Accelerate, '0', sizeof(short)*3);
@@ -23,7 +24,7 @@ int8_t init_device()
 {
     delay_init(72);
     
-     // USART
+    // USART
     USART_Configuration();
     
     /* LED 端口初始化 */
@@ -53,7 +54,7 @@ int8_t init_device()
     //WaterPress_Init();
     
     // 水流计速器
-    //S201C_Init();
+    S201C_Init();
     
     // 水箱控制模块
     //WaterTank_Init();
@@ -89,10 +90,10 @@ void read_device_data()
 
 void report_device_data()
 {
-    printf("\r\nT:%.2f C\r\n", device_data.Temperature);
+    //printf("\r\nT:%.2f C\r\n", device_data.Temperature);
     
-    printf("%d %d %d\r\n", device_data.Accelerate[0], device_data.Accelerate[1], device_data.Accelerate[2]);
-    printf("%d %d %d\r\n", device_data.Gyroscope[0], device_data.Gyroscope[1], device_data.Gyroscope[2]);
+    //printf("%d %d %d\r\n", device_data.Accelerate[0], device_data.Accelerate[1], device_data.Accelerate[2]);
+    //printf("%d %d %d\r\n", device_data.Gyroscope[0], device_data.Gyroscope[1], device_data.Gyroscope[2]);
     //printf("%f\r\n", device_data.Temp);
     
     //printf("D:%fcm\r\n", device_data.distance);
@@ -144,25 +145,27 @@ static int32_t send_index = 0;
 
 void encap_msg_sending()
 {
-    // 设置潜艇编号
-    device_data.device_ID = 99;
-    // 设置发送数据长度(包括传感器数据和设备状态数据)
-    device_data.data_length =
-        sizeof(device_data_s) + sizeof(device_status_s);
+    // 设置发送报文头
+    sending_header_s sh;
+    sh.header[0]='\n'; 
+    sh.header[1]='\n';// 设置报文头
+    sh.device_ID = 99;// 设置潜艇编号
+    sh.data_length = // 设置发送数据长度(包括传感器数据和设备状态数据)
+        sizeof(sending_header_s) + sizeof(device_data_s) + sizeof(device_status_s);
     
-    // 准备发送数据
+    // 设置发送内容地址
     sending_content_s sc;
     sc.device_data_p = &device_data;
     sc.device_status_p = &device_status;
     
+    // 设置发送报文包
     sending_package_s sp;
-    
-    sp.header = '\n';
+    sp.header_p = &sh;
     sp.content_p = &sc;
     //sp.tail = '\n';
     
     // 发送
-    Usart_SendByte(USARTx, sp.header);
+    Usart_SendByLength(USARTx,(char *) sp.header_p, sizeof(sending_header_s));
     Usart_SendByLength(USARTx,(char *) sp.content_p->device_data_p, sizeof(device_data_s));
     Usart_SendByLength(USARTx,(char *) sp.content_p->device_status_p, sizeof(device_status_s));
     //Usart_SendByte(USARTx, sp.tail);

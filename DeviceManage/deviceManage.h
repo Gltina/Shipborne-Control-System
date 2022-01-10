@@ -56,12 +56,6 @@ typedef struct device_status_s
 // 传感器数值
 typedef struct device_data_s
 {
-    // 本发射设备的唯一ID
-    uint16_t device_ID;
-    
-    // 发送数据长度
-    uint16_t data_length;
-    
     // 陀螺仪/加速器传感器, 2 byte, 总共2*6=12字节
     short Accelerate[3];
     short Gyroscope[3];
@@ -84,20 +78,32 @@ typedef struct device_data_s
     float WaterTankDepth;
 }device_data_s;
 
+typedef struct sending_header_s
+{
+    // 报文表头
+    uint8_t header[2];
+    
+    // 发送数据长度
+    uint16_t data_length;
+    
+    // 本发射设备的唯一ID
+    uint16_t device_ID;
+    
+}sending_header_s;
+
 typedef struct sending_content_s
 {
-    // 设备读数
-    device_data_s * device_data_p;
     // 设备状态
     device_status_s * device_status_p;
-    
+    // 设备读数
+    device_data_s * device_data_p;
 }sending_content_s;
 
 // 发送报文格式
 typedef struct sending_package_s
 {
-    // 一般为@
-    uint8_t header;
+    // 一般为'\n'
+    sending_header_s * header_p;
     
     // 发送内容
     sending_content_s * content_p;
