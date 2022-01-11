@@ -8,10 +8,10 @@ void WaterTank_Init()
     GPIO_InitStructure.GPIO_Pin = WATERTANK_IN_Pin;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-    GPIO_Init(GPIOA, &GPIO_InitStructure);
+    GPIO_Init(WATERTANK_GPIOx, &GPIO_InitStructure);
     
     GPIO_InitStructure.GPIO_Pin = WATERTANK_OUT_Pin;
-    GPIO_Init(GPIOA, &GPIO_InitStructure);
+    GPIO_Init(WATERTANK_GPIOx, &GPIO_InitStructure);
     
     WaterTank_IN_Close();
     WaterTank_OUT_Close();
@@ -34,4 +34,28 @@ void WaterTank_OUT_Open()
 void WaterTank_OUT_Close()
 {
     GPIO_ResetBits(WATERTANK_GPIOx, WATERTANK_OUT_Pin);
+}
+
+void set_waterTank_IN_status(uint8_t status)
+{
+    if(status == 1)
+    {
+        WaterTank_IN_Open();
+    }
+    else if(status == 0)
+    {
+        WaterTank_IN_Close();
+    }
+}
+
+void set_waterTank_OUT_status(uint8_t status)
+{
+    if(status == 1)
+    { 
+       WaterTank_OUT_Open();
+    }
+    else if(status == 0)
+    {
+        WaterTank_OUT_Close();
+    }
 }

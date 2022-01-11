@@ -3,10 +3,10 @@
 
 #include "stm32f10x.h"
 
-#define WATERTANK_CLOCK_RCC RCC_APB2Periph_GPIOA
-#define WATERTANK_GPIOx GPIOA
-#define WATERTANK_IN_Pin GPIO_Pin_2
-#define WATERTANK_OUT_Pin GPIO_Pin_3
+#define WATERTANK_CLOCK_RCC RCC_APB2Periph_GPIOB
+#define WATERTANK_GPIOx GPIOB
+#define WATERTANK_IN_Pin GPIO_Pin_12
+#define WATERTANK_OUT_Pin GPIO_Pin_13
 
 void WaterTank_Init();
 
@@ -18,5 +18,8 @@ void WaterTank_IN_Close();
 // 电机与出口电磁阀一起作用
 void WaterTank_OUT_Open();
 void WaterTank_OUT_Close();
+
+void set_waterTank_IN_status(uint8_t status);
+void set_waterTank_OUT_status(uint8_t status);
 
 #endif

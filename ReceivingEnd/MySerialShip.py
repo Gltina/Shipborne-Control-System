@@ -6,6 +6,9 @@ import struct as s
 from MsgEncode import *
 import MsgCommon as MsgCom
 
+# 初始化编码器
+msg_encode = MsgEncode(8)
+
 
 class MySerialShip:
     # 记录接收的每条数据
@@ -16,9 +19,6 @@ class MySerialShip:
     sending_threading_flag = True
     # 串口对象
     serial_object = serial.Serial()
-
-    # 初始化编码器
-    msg_encode = MsgEncode(8)
 
     def __init__(self) -> None:
         pass
@@ -49,7 +49,13 @@ class MySerialShip:
                 # 记录收到的\n数量, 满足两个则是报文起始位
                 if rec_flag == b"\n":
                     newline_flag += 1
+                elif b"#" == rec_flag:
+                    print(other_msg.decode("utf-8"))
+                    other_msg = bytearray()
+                else:
+                    other_msg.extend(rec_data_tmp)
 
+                # 当\n有两个即可开始接收数据, 实际是从缓冲区里取数据
                 if newline_flag == 2:
                     newline_flag = 0
                     try:
@@ -67,9 +73,10 @@ class MySerialShip:
 
                         # 解析全部数据 实际使用不该放在这里
                         res = s.unpack("<HHhhhhhhfdfffBBBBBBBB", curr_msg)
-                        print("数据长度:{}, 设备编号:{}".format(res[0], res[1]))
                         print(
-                            "陀螺仪数值:A:{},{},{} G:{},{},{}, 温度:{}".format(
+                            "[From Slave:]数据长度:{}, 设备编号:{}, 陀螺仪数值:A:{},{},{} G:{},{},{}, 温度:{}".format(
+                                res[0],
+                                res[1],
                                 res[2],
                                 res[3],
                                 res[4],
@@ -79,20 +86,16 @@ class MySerialShip:
                                 res[8],
                             )
                         )
+
+                        # 完成后, 标志已经收到数据
                         MsgCom.G_received_data_flag = True
-                        # print(self.get_msg_size())
+
                         # 清除当前报文, 准备接收下一条
                         curr_msg = bytearray()
+
                     except Exception as e:
                         print("---error---: ", e)
                         continue
-
-                else:
-                    if b"#" == rec_flag:
-                        print(other_msg.decode("utf-8"))
-                        other_msg = bytearray()
-                    else:
-                        other_msg.extend(rec_data_tmp)
 
         # 结束串口接收进程
         try:
@@ -105,11 +108,11 @@ class MySerialShip:
         while self.sending_threading_flag:
             if MsgCom.G_received_data_flag:
                 try:
-                    self.msg_encode.make_encap_msg()
-                    self.serial_object.write(self.msg_encode.get_encap_msg())
+                    self.serial_object.write(msg_encode.make_encap_msg())
+                    pass
                 except Exception as e:
                     print("---error---: ", e)
-                print("response sent")
+                print("[From PC:] Response Sent ")
                 MsgCom.G_received_data_flag = False
 
     def close_read_data_threading(self):
