@@ -54,10 +54,13 @@ int8_t init_device()
     //WaterPress_Init();
 
     // 水流计速器
-    S201C_Init();
+    //S201C_Init();
 
     // 水箱控制模块
     WaterTank_Init();
+    
+    // 启动自动发送模块
+    SendingEnd_Init();
 
     return 0;
 }
@@ -143,31 +146,51 @@ void test_send()
 
 static int32_t send_index = 0;
 
-void encap_msg_sending()
+void encap_msg_sending(uint8_t data_type, char *send_str)
 {
     // 设置发送报文头
     sending_header_s sh;
     sh.header[0] = '\n';
     sh.header[1] = '\n'; // 设置报文头
     sh.device_ID = 99;   // 设置潜艇编号
-    sh.data_length =     // 设置发送数据长度(包括传感器数据和设备状态数据)
-        sizeof(sending_header_s) + sizeof(device_data_s) + sizeof(device_status_s);
-
-    // 设置发送内容地址
-    sending_content_s sc;
-    sc.device_data_p = &device_data;
-    sc.device_status_p = &device_status;
 
     // 设置发送报文包
     sending_package_s sp;
     sp.header_p = &sh;
-    sp.content_p = &sc;
-    //sp.tail = '\n';
+    
+    // 数据类型为报文, 即包括了传感器数据和设备状态
+    if (data_type == 0)
+    {
+        sh.data_type = 0; // 报文类型为一般报文类型
+        sh.data_length =  // 设置发送数据长度(包括传感器数据和设备状态数据)
+            sizeof(sending_header_s) + sizeof(device_data_s) + sizeof(device_status_s);
 
-    // 发送
-    Usart_SendByLength(USARTx, (char *)sp.header_p, sizeof(sending_header_s));
-    Usart_SendByLength(USARTx, (char *)sp.content_p->device_data_p, sizeof(device_data_s));
-    Usart_SendByLength(USARTx, (char *)sp.content_p->device_status_p, sizeof(device_status_s));
+        // 设置发送内容地址
+        sending_content_s sc;
+        sc.device_data_p = &device_data;
+        sc.device_status_p = &device_status;
+
+        sp.content_p = &sc;
+
+        // 发送报文头+传感器数值+设备状态
+        Usart_SendByLength(USARTx, (char *)sp.header_p, sizeof(sending_header_s));
+        Usart_SendByLength(USARTx, (char *)sp.content_p->device_data_p, sizeof(device_data_s));
+        Usart_SendByLength(USARTx, (char *)sp.content_p->device_status_p, sizeof(device_status_s));
+    }
+    // 字符串数据
+    else if (data_type == 1)
+    {
+        if (send_str == NULL)
+            return;
+
+        sh.data_type = 1;
+        sh.data_length = sizeof(sending_header_s) + strlen(send_str);
+        
+        // 设置发送报文包, 但是内容不设置,仅使用包头
+        Usart_SendByLength(USARTx, (char *)sp.header_p, sizeof(sending_header_s));
+        Usart_SendString(USARTx, send_str);
+    }
+
     //Usart_SendByte(USARTx, sp.tail);
 
     //    send_index++;
@@ -180,15 +203,15 @@ void encap_msg_sending()
 void apply_control_signal(device_status_s *new_status)
 {
 
-//    printf("%d %d %d %d %d %d %d %d #", new_status->MotorGear,
-//           new_status->Rudder0Angle,
-//           new_status->Rudder1Angle,
-//           new_status->Highbeam,
-//           new_status->Taillight,
-//           new_status->Headlight,
-//           new_status->WaterIn,
-//           new_status->WaterOut
-//    );
+    //    printf("%d %d %d %d %d %d %d %d #", new_status->MotorGear,
+    //           new_status->Rudder0Angle,
+    //           new_status->Rudder1Angle,
+    //           new_status->Highbeam,
+    //           new_status->Taillight,
+    //           new_status->Headlight,
+    //           new_status->WaterIn,
+    //           new_status->WaterOut
+    //    );
 
     if (device_status.MotorGear != new_status->MotorGear)
     {

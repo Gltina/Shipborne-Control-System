@@ -499,16 +499,6 @@
               <FilePath>.\Algorithm\algorithm.h</FilePath>
             </File>
             <File>
-              <FileName>s201c.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\S201C\s201c.c</FilePath>
-            </File>
-            <File>
-              <FileName>s201c.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\S201C\s201c.h</FilePath>
-            </File>
-            <File>
               <FileName>waterTank.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\WaterTank\waterTank.c</FilePath>
@@ -527,6 +517,16 @@
               <FileName>waterPress.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\WaterPress\waterPress.h</FilePath>
+            </File>
+            <File>
+              <FileName>sendingEnd.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\SendingEnd\sendingEnd.c</FilePath>
+            </File>
+            <File>
+              <FileName>sendingEnd.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\SendingEnd\sendingEnd.h</FilePath>
             </File>
           </Files>
         </Group>

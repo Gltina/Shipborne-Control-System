@@ -53,8 +53,6 @@ static int8_t REPORT_DATA_STATUS = 0;	// 数据发送状态
 static uint32_t REPORT_TIM_CAPTURE = 0; // 等待周期
 static uint32_t REPORT_ERROR = 0;		// 是否已经报警
 
-
-
 void TIM2_IRQHandler(void)
 {
 	// 设置为200ms
@@ -63,18 +61,18 @@ void TIM2_IRQHandler(void)
 	// 验证: 2000*7200 / 36000000 = 0.2s
     
 	// S201C
-	static uint8_t S201C_STATUS = 0;	   //存储捕获状态，state=0表示未捕获到第一个上升沿，state=1表示已经捕获到第一个上升沿
-	static uint32_t S201C_TIM_CAPTURE = 0; //存储TIM2计数寄存器溢出次数
+	//static uint8_t S201C_STATUS = 0;	   //存储捕获状态，state=0表示未捕获到第一个上升沿，state=1表示已经捕获到第一个上升沿
+	//static uint32_t S201C_TIM_CAPTURE = 0; //存储TIM2计数寄存器溢出次数
     
     // 200ms 正常中断
-	if (TIM_GetITStatus(S201C_TIMX, TIM_IT_Update) != RESET) //发生计数器溢出更新中断
+	if (TIM_GetITStatus(SENDING_TIMX, TIM_IT_Update) != RESET) //发生计数器溢出更新中断
 	{
 		// 水流计速器
-		TIM_ClearITPendingBit(S201C_TIMX, S201C_IT_CCX);
-		if (S201C_STATUS == 1) //在捕获到第一个上升沿后
-		{
-			S201C_TIM_CAPTURE++; //溢出次数加一
-		}
+		//TIM_ClearITPendingBit(S201C_TIMX, S201C_IT_CCX);
+		//if (S201C_STATUS == 1) //在捕获到第一个上升沿后
+		//{
+		//	S201C_TIM_CAPTURE++; //溢出次数加一
+		//}
 
 		// 数据发送模块
 		if (REPORT_DATA_STATUS == 0) // 未发送
@@ -84,11 +82,13 @@ void TIM2_IRQHandler(void)
 
 			LED_RGBOFF;
 
-			TIM_Cmd(S201C_TIMX, DISABLE);   // 关闭计时, 避免发送时间过长导致再次溢出
+			TIM_Cmd(SENDING_TIMX, DISABLE);   // 关闭计时, 避免发送时间过长导致再次溢出
+            
 			//report_device_data();
             read_device_data();
-            encap_msg_sending();
-			TIM_Cmd(S201C_TIMX, ENABLE);    // 开启计时
+            encap_msg_sending(0, NULL);
+            
+			TIM_Cmd(SENDING_TIMX, ENABLE);    // 开启计时
             
             REPORT_TIM_CAPTURE = 0; // 发送后等待周期置空
 		}
@@ -99,32 +99,32 @@ void TIM2_IRQHandler(void)
 	}
 
 	// 水流计速器中断捕获
-	if (TIM_GetITStatus(S201C_TIMX, S201C_IT_CCX) != RESET) //产生输入捕获中断
-	{
-		TIM_ClearITPendingBit(S201C_TIMX, S201C_IT_CCX | TIM_IT_Update); //清除中断标志位
-		if (S201C_STATUS == 0)											 //未捕获到第一个上升沿
-		{
-			S201C_STATUS = 1;			   //置1
-			TIM_SetCounter(S201C_TIMX, 0); //将计数器清零
-		}
-		else if (S201C_STATUS == 1) //已经捕获到第一个上升沿
-		{
-			S201C_STATUS = 0;
-			uint32_t timecount = TIM_GetCapture4(S201C_TIMX) + S201C_TIM_CAPTURE * 2000; //计算两个上升沿之间的总计数
-			S201C_TIM_CAPTURE = 0;														 //清零溢出次数
-			TIM_SetCounter(S201C_TIMX, 0);												 //清零计数器
+//	if (TIM_GetITStatus(S201C_TIMX, S201C_IT_CCX) != RESET) //产生输入捕获中断
+//	{
+//		TIM_ClearITPendingBit(S201C_TIMX, S201C_IT_CCX | TIM_IT_Update); //清除中断标志位
+//		if (S201C_STATUS == 0)											 //未捕获到第一个上升沿
+//		{
+//			S201C_STATUS = 1;			   //置1
+//			TIM_SetCounter(S201C_TIMX, 0); //将计数器清零
+//		}
+//		else if (S201C_STATUS == 1) //已经捕获到第一个上升沿
+//		{
+//			S201C_STATUS = 0;
+//			uint32_t timecount = TIM_GetCapture4(S201C_TIMX) + S201C_TIM_CAPTURE * 2000; //计算两个上升沿之间的总计数
+//			S201C_TIM_CAPTURE = 0;														 //清零溢出次数
+//			TIM_SetCounter(S201C_TIMX, 0);												 //清零计数器
 
-			float frequent_input = 10000.0 / timecount; //计算频率
-			float s = timecount / 10000.0;
-			/*
-            根据公式: 频率(f)=5*Q*s - 3, Q为流量,单位是(L/min). s为秒, 单位是秒
-            */
-			//printf("%.3fL/min\r\n", frequent_input/5.0/s - 3.0);
-			device_data.WaterSpeed = frequent_input / 5.0 / s - 3.0;
-		}
-	}
+//			float frequent_input = 10000.0 / timecount; //计算频率
+//			float s = timecount / 10000.0;
+//			/*
+//            根据公式: 频率(f)=5*Q*s - 3, Q为流量,单位是(L/min). s为秒, 单位是秒
+//            */
+//			//printf("%.3fL/min\r\n", frequent_input/5.0/s - 3.0);
+//			device_data.WaterSpeed = frequent_input / 5.0 / s - 3.0;
+//		}
+//	}
     
-    if (TIM_GetITStatus(S201C_TIMX, TIM_IT_Update) != RESET)
+    if (TIM_GetITStatus(SENDING_TIMX, TIM_IT_Update) != RESET)
     {
         // 监测是否按时收到数据
         const uint32_t waiting_second = 5; // 设置等待的秒数
@@ -152,7 +152,7 @@ void TIM2_IRQHandler(void)
         }
     }
 	
-    TIM_ClearITPendingBit(S201C_TIMX, TIM_IT_Update); //清除中断标志位
+    TIM_ClearITPendingBit(SENDING_TIMX, TIM_IT_Update); //清除中断标志位
 }
 
 /**
@@ -299,8 +299,16 @@ void USART1_IRQHandler(void)
             {
                 receiving_package_s receiving_package;
                 memcpy(&receiving_package, rec_data, sizeof(rec_data));
+                
+                // 计算从发送报文到回应完全接收的耗时
+//                char send_str[30];
+//                uint32_t receive_delay = TIM_GetCapture4(S201C_TIMX) + REPORT_TIM_CAPTURE * 2000;
+//                sprintf(send_str, "%.3f s",receive_delay/ 10000.0);
+//                encap_msg_sending(1,send_str);
+                
+                //encap_msg_sending(1,"test");
                 //printf("%d %d#", receiving_package.data_length,receiving_package.device_ID );
-                // 此时上位机数据接受完成
+                // 此时上位机数据接受完成 
                 // 接受的串口缓冲区应该为空
                 
                 // 应用新的状态指示
