@@ -16,10 +16,10 @@ int main(void)
         
         //DELAY_MS(500);
         
-//        Servo_Control(0);
-//        DELAY_MS(1500);
-//        Servo_Control(180);
-//        DELAY_MS(1500);
+        //Servo_Control(0);
+        //DELAY_MS(1500);
+        //Servo_Control(180);
+        //DELAY_MS(1500);
 		
         //DELAY_MS(1000);
         
@@ -31,7 +31,7 @@ int main(void)
 //        LED2_ON; // ÁÁ
 //        DELAY_MS(1000);
 //        LED2_OFF; // Ãð
-        
+
 	}
     
     return 0;

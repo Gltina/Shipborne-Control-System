@@ -28,21 +28,12 @@ void MPU6050_ReadData(u8 reg_add, unsigned char *Read, u8 num)
   */
 void MPU6050_Init(void)
 {
-    int i = 0, j = 0;
-    
-    //在初始化之前要延时一段时间，若没有延时，则断电后再上电数据可能会出错
-    for (i = 0; i < 1000; i++)
-    {
-        for (j = 0; j < 1000; j++)
-        {
-            ;
-        }
-    }
-    MPU6050_WriteReg(MPU6050_RA_PWR_MGMT_1, 0x00); //解除休眠状态
-    MPU6050_WriteReg(MPU6050_RA_SMPLRT_DIV, 0x07); //陀螺仪采样率
+    MPU6050_WriteReg(MPU6050_RA_PWR_MGMT_1, 0x00);  //解除休眠状态
+    MPU6050_WriteReg(MPU6050_RA_SMPLRT_DIV, 0x07);  //陀螺仪采样率
+    MPU6050_WriteReg(MPU6050_RA_CONFIG, 0x06);      //低通滤波频率，典型值：0x06(5Hz)
     MPU6050_WriteReg(MPU6050_RA_CONFIG, 0x06);
-    MPU6050_WriteReg(MPU6050_RA_ACCEL_CONFIG, 0x01); //配置加速度传感器工作在4G模式
-    MPU6050_WriteReg(MPU6050_RA_GYRO_CONFIG, 0x18);  //陀螺仪自检及测量范围，典型值：0x18(不自检，2000deg/s)
+    MPU6050_WriteReg(MPU6050_RA_GYRO_CONFIG, 0x18);  //陀螺仪自检及测量范围(2000deg/s)
+    MPU6050_WriteReg(MPU6050_RA_ACCEL_CONFIG, 0x01); //配置加速度传感器工作在2G模式
 }
 
 /**
@@ -123,4 +114,31 @@ void MPU6050_ReturnTemp(float *Temperature)
     MPU6050_ReadData(MPU6050_RA_TEMP_OUT_H, buf, 2); //读取温度值
     temp3 = (buf[0] << 8) | buf[1];
     *Temperature = ((double)temp3 / 340.0) + 36.53;
+}
+
+void read_MPU6050(short *accData, short *gyroData)
+{
+    // https://github.com/urbanzrim/stm32-MPU6050/blob/master/cmsis_lib/include/mpu6050.h
+    
+    MPU6050ReadAcc(accData);
+    // 转换为可读数据
+    //accData[0] /= 16384.0;
+    //accData[1] /= 16384.0;
+    //accData[2] /= 16384.0;
+    
+    MPU6050ReadGyro(gyroData);
+    
+    /* @brief Get Gyroscope X,Y,Z calculated data
+     *
+     * @param X - sensor roll on X axis
+     * @param Y - sensor pitch on Y axis
+     * @param Z - sensor jaw on Z axis
+     *
+     * @retval @MPU6050_errorstatus
+     */
+    // 转换为可读数据
+    //gyroData[0] /= 131.0;
+    //gyroData[1] /= 131.0;
+    //gyroData[2] /= 131.0;
+    
 }

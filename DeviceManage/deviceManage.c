@@ -48,7 +48,7 @@ int8_t init_device()
     //SRF05_Init();
 
     // 舵机
-    //MG90S_Init();
+    MG90S_Init();
 
     // 水压传感器
     //WaterPress_Init();
@@ -58,7 +58,7 @@ int8_t init_device()
 
     // 水箱控制模块
     WaterTank_Init();
-    
+
     // 启动自动发送模块
     SendingEnd_Init();
 
@@ -75,14 +75,15 @@ void read_device_data()
         DS18B20_GetTemp_MatchRom(device_data.DS18B20ID);
 
     // 陀螺仪/加速度传感器
-    MPU6050ReadAcc(device_data.Accelerate);
-    MPU6050ReadGyro(device_data.Gyroscope);
+    read_MPU6050(device_data.Accelerate, device_data.Gyroscope);
+    //MPU6050ReadAcc(device_data.Accelerate);
+    //MPU6050ReadGyro(device_data.Gyroscope);
     //MPU6050_ReturnTemp(&device_data.Temp);
 
     // 超声波传感器
     //device_data.distance = Measure_distance();
 
-    //  水压传感器
+    // 水压传感器
     // 自动定时获取 adc会有一个采集频率
     //device_data.water_depth = ADC2WaterDepth(ADC1_VALUE);
     //device_data.water_depth = Get_WaterPress_Filtered();
@@ -144,7 +145,7 @@ void test_send()
     //printf("%d\r\n", strlen(test_send_data));
 }
 
-static int32_t send_index = 0;
+//static int32_t send_index = 0;
 
 void encap_msg_sending(uint8_t data_type, char *send_str)
 {
@@ -157,7 +158,7 @@ void encap_msg_sending(uint8_t data_type, char *send_str)
     // 设置发送报文包
     sending_package_s sp;
     sp.header_p = &sh;
-    
+
     // 数据类型为报文, 即包括了传感器数据和设备状态
     if (data_type == 0)
     {
@@ -173,8 +174,11 @@ void encap_msg_sending(uint8_t data_type, char *send_str)
         sp.content_p = &sc;
 
         // 发送报文头+传感器数值+设备状态
+        // 可能发的太快了, 可以加一个延时
         Usart_SendByLength(USARTx, (char *)sp.header_p, sizeof(sending_header_s));
+        DELAY_MS(50);
         Usart_SendByLength(USARTx, (char *)sp.content_p->device_data_p, sizeof(device_data_s));
+        DELAY_MS(50);
         Usart_SendByLength(USARTx, (char *)sp.content_p->device_status_p, sizeof(device_status_s));
     }
     // 字符串数据
@@ -185,7 +189,7 @@ void encap_msg_sending(uint8_t data_type, char *send_str)
 
         sh.data_type = 1;
         sh.data_length = sizeof(sending_header_s) + strlen(send_str);
-        
+
         // 设置发送报文包, 但是内容不设置,仅使用包头
         Usart_SendByLength(USARTx, (char *)sp.header_p, sizeof(sending_header_s));
         Usart_SendString(USARTx, send_str);
@@ -221,7 +225,15 @@ void apply_control_signal(device_status_s *new_status)
     if (device_status.Rudder0Angle != new_status->Rudder0Angle)
     {
         device_status.Rudder0Angle = new_status->Rudder0Angle;
-        // action
+        // 测试舵机
+        if (device_status.Rudder0Angle == 0)
+        {
+            Servo_Control(0);
+        }
+        else if (device_status.Rudder0Angle == 1)
+        {
+            Servo_Control(180);
+        }
     }
     if (device_status.Rudder1Angle != new_status->Rudder1Angle)
     {
@@ -250,7 +262,7 @@ void apply_control_signal(device_status_s *new_status)
 
         set_waterTank_IN_status(device_status.WaterIn);
 
-        //printf("set in#");
+        //encap_msg_sending(1,"set in");
     }
     // 设置出水口状态
     if (new_status->WaterOut == 0 || new_status->WaterOut == 1)
@@ -259,6 +271,6 @@ void apply_control_signal(device_status_s *new_status)
 
         set_waterTank_OUT_status(device_status.WaterOut);
 
-        //printf("set out#");
+        //encap_msg_sending(1,"set out");
     }
 }

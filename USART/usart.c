@@ -73,13 +73,17 @@ void USART_Configuration(void)
 
 uint32_t Usart_SendByte(USART_TypeDef *pUSARTx, uint8_t c)
 {
+    /*等待发送数据寄存器为空 */
+	while (USART_GetFlagStatus(pUSARTx, USART_FLAG_TXE) == RESET) {}
+        
 	/*发送一个字节数据到USART */
 	USART_SendData(pUSARTx, (uint16_t) c);
     
-	/*等待发送数据寄存器为空 */
-	while (USART_GetFlagStatus(pUSARTx, USART_FLAG_TXE) == RESET) {}
+	/*等待发送完成 */
+	while (USART_GetFlagStatus(pUSARTx, USART_FLAG_TC) == RESET) {}
     
     USART_CACHE_INDEX ++;
+    
     if(USART_CACHE_INDEX == 512)
     {
         USART_CACHE_INDEX = 0;
@@ -123,7 +127,7 @@ uint32_t Usart_SendString(USART_TypeDef *pUSARTx, char *str)
 	}
 
 	/*等待发送完成 */
-	while (USART_GetFlagStatus(pUSARTx, USART_FLAG_TC) == RESET) {}
+	//while (USART_GetFlagStatus(pUSARTx, USART_FLAG_TC) == RESET) {}
     
     // 直到为1
     //while(GPIO_ReadInputDataBit(USART_AUX_GPIO_PORT, USART_AUX_GPIO_PIN) == 0){}
@@ -140,21 +144,22 @@ uint32_t Usart_SendByLength(USART_TypeDef *pUSARTx, char *str, uint32_t length)
 	}
 
 	/*等待发送完成 */
-	while (USART_GetFlagStatus(pUSARTx, USART_FLAG_TC) == RESET) {}
+	//while (USART_GetFlagStatus(pUSARTx, USART_FLAG_TC) == RESET) {}
     
     return i;
 }
 
 int fputc(int ch, FILE *f)
 {
-	/*发送一个字节数据到串口 */
-	USART_SendData(USARTx, (uint8_t) ch);
-
-	/*等待发送完毕 */
+    /*等待发送完毕 */
 	while (USART_GetFlagStatus(USARTx, USART_FLAG_TXE) == RESET) {}
     
-    // 直到为1
-    //while(GPIO_ReadInputDataBit(USART_AUX_GPIO_PORT, USART_AUX_GPIO_PIN) == 0){}    
+	/*发送一个字节数据到串口 */
+	USART_SendData(USARTx, (uint8_t) ch);
+    
+    /*等待发送完成 */
+	while (USART_GetFlagStatus(USARTx, USART_FLAG_TC) == RESET) {}
+         
     return ch;
 }
 

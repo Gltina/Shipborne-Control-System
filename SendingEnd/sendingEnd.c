@@ -32,13 +32,14 @@ void TIM_Config(void)
     RCC_APB1PeriphClockCmd(SENDING_RCC_TIMX, ENABLE); // 36MHZ
 
     TIM_DeInit(SENDING_TIMX);
-    TIM_InternalClockConfig(TIM2);
+    TIM_InternalClockConfig(SENDING_TIMX);
     TIMX_TimeBaseStructure.TIM_Period = 1999;                    //0xffff;                  //设定计数器自动重装值（设置为最大）
     TIMX_TimeBaseStructure.TIM_Prescaler = 7199;                 //1;                    //设置分频系数
     TIMX_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;     //设置时钟分割:TDTS = Tck_tim
     TIMX_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up; //TIM向上计数模式
     TIM_TimeBaseInit(SENDING_TIMX, &TIMX_TimeBaseStructure);
-
-    TIM_ITConfig(SENDING_TIMX, TIM_IT_Update, ENABLE); //使能捕获和更新中断
-    TIM_Cmd(SENDING_TIMX, ENABLE);                     //使能中断
+    
+    TIM_ClearITPendingBit(SENDING_TIMX, TIM_IT_Update); //清除更新中断请求位
+    TIM_ITConfig(SENDING_TIMX, TIM_IT_Update, ENABLE);  //使能捕获和更新中断
+    TIM_Cmd(SENDING_TIMX, ENABLE);                      //使能中断
 }

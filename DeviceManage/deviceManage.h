@@ -25,6 +25,10 @@
 // 关于内存对其的理解建议:
 // https://www.geeksforgeeks.org/is-sizeof-for-a-struct-equal-to-the-sum-of-sizeof-of-each-member/
 
+
+//#define SHOW_TIME1
+
+
 // 设备状态
 typedef struct device_status_s
 {
@@ -44,6 +48,10 @@ typedef struct device_status_s
     uint8_t WaterIn;
     // 排水口状态
     uint8_t WaterOut;
+    // 系统状态控制值
+    uint8_t SystemStatus0;
+    // 系统状态控制值
+    uint8_t SystemStatus1;
 } device_status_s;
 
 // 传感器数值
@@ -119,6 +127,7 @@ void report_device_data();
 void clear_device_data();
 
 void test_send();
+
 
 /*
     包装并且发送,支持发送一般报文和字符串数据

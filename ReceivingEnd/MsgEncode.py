@@ -21,7 +21,6 @@ class MsgEncode:
 
     # 生成可发送的字节流
     def make_encap_msg(self):
-
         """
         self.send_data = bytearray(
             [
@@ -73,4 +72,9 @@ class MsgEncode:
             self.control_list[6] = value
         elif key == "WaterOut":
             self.control_list[7] = value
-        print("[From PC:]", *self.control_list)
+        elif key == "SystemStatus0":
+            self.control_list[8] = value
+        elif key == "SystemStatus1":
+            self.control_list[9] = value
+
+        print("[From PC]", *self.control_list)
