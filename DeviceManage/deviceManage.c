@@ -33,6 +33,9 @@ int8_t init_device()
     // I2C
     I2C_Bus_Init();
 
+		//主电机初始化
+		ENGINE775_Init();
+		
     // DS18B20
     while (DS18B20_Init())
     {
@@ -219,7 +222,9 @@ void apply_control_signal(device_status_s *new_status)
 
     if (device_status.MotorGear != new_status->MotorGear)
     {
+				u16 current_status;
         device_status.MotorGear = new_status->MotorGear;
+				current_status = (device_status.MotorGear);
         // action
     }
     if (device_status.Rudder0Angle != new_status->Rudder0Angle)

@@ -19,6 +19,7 @@
 #include "../MG90S/mg90s.h"
 #include "../SRF05/srf05.h"
 #include "../LED/led.h"
+#include "../775Engine/engine775.h"
 
 //extern int16_t ADC1_VALUE;
 
@@ -27,7 +28,6 @@
 
 
 //#define SHOW_TIME1
-
 
 // �豸״̬
 typedef struct device_status_s
