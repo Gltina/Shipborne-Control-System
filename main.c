@@ -11,7 +11,6 @@ int main(void)
 	while (1)
 	{
         //read_device_data();
-        
         //report_device_data();
         
         //DELAY_MS(500);
