@@ -40,3 +40,7 @@ if __name__ == "__main__":
             msg_encode.change_control_signal("Rudder0Angle", 0)
         elif input_str == "d1":
             msg_encode.change_control_signal("Rudder0Angle", 1)
+        elif input_str == "lo":  # LED open
+            msg_encode.change_control_signal("Highbeam", 1)
+        elif input_str == "lc":  # LED open
+            msg_encode.change_control_signal("Highbeam", 0)

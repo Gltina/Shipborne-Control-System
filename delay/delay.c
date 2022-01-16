@@ -3,7 +3,7 @@
 static u8  fac_us=0;//us延时倍乘数
 static u16 fac_ms=0;//ms延时倍乘数
 
-void delay_init(u8 SYSCLK)
+void Delay_Init(u8 SYSCLK)
 {
 	SysTick->CTRL &= 0xfffffffb; //bit2清空,选择外部时钟  HCLK/8
 	fac_us = SYSCLK / 8;

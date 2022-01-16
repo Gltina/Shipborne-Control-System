@@ -2,7 +2,7 @@
 
 int main(void)
 {
-    init_device();
+    Init_Device();
     
     //DELAY_MS(1000);
     

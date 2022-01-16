@@ -86,7 +86,7 @@
     LED2_ON;       \
     LED3_OFF;
 
-//À¶
+//À¶ 
 #define LED_BLUE \
     LED1_OFF;    \
     LED2_OFF;     \
@@ -121,6 +121,9 @@
     LED2_OFF;       \
     LED3_OFF;
 
-void LED_GPIO_Config(void);
+void LED_Init(void);
+
+void Open_SignalLED();
+void Close_SignalLed();
 
 #endif /* __LED_H */

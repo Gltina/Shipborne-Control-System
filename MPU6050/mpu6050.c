@@ -86,7 +86,7 @@ void MPU6050ReadGyro(short *gyroData)
     MPU6050_ReadData(MPU6050_GYRO_OUT, buf, 6);
     gyroData[0] = (buf[0] << 8) | buf[1];
     gyroData[1] = (buf[2] << 8) | buf[3];
-    gyroData[2] = (buf[4] << 8) | buf[5];
+    gyroData[2] = (buf[4] << 8) | buf[5]; 
 }
 
 /**
@@ -116,7 +116,7 @@ void MPU6050_ReturnTemp(float *Temperature)
     *Temperature = ((double)temp3 / 340.0) + 36.53;
 }
 
-void read_MPU6050(short *accData, short *gyroData)
+void Read_MPU6050(short *accData, short *gyroData)
 {
     // https://github.com/urbanzrim/stm32-MPU6050/blob/master/cmsis_lib/include/mpu6050.h
     

@@ -330,7 +330,7 @@
 #define MPU6050_PWR1_DEVICE_RESET_BIT   7
 #define MPU6050_PWR1_SLEEP_BIT          6
 #define MPU6050_PWR1_CYCLE_BIT          5
-#define MPU6050_PWR1_TEMP_DIS_BIT       3
+#define MPU6050_PWR1_TEMP_DIS_BIT       3 
 #define MPU6050_PWR1_CLKSEL_BIT         2
 #define MPU6050_PWR1_CLKSEL_LENGTH      3
 
@@ -371,7 +371,7 @@
 void MPU6050ReadTemp(short *tempData);
 void MPU6050ReadGyro(short *gyroData);
 void MPU6050ReadAcc(short *accData);
-void read_MPU6050(short *accData, short *gyroData);
+void Read_MPU6050(short *accData, short *gyroData);
 void MPU6050_ReturnTemp(float *Temperature);
 void MPU6050_Init(void);
 uint8_t MPU6050ReadID(void);

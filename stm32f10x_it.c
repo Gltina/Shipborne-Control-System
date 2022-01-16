@@ -57,6 +57,7 @@ static uint32_t ALARM_COUNT_TEST = 0;   // 用于测试的报警次数, 不清零,用于统计
 
 // 数据接收模块
 #define RECESIZE 16
+static receiving_package_s receiving_package;
 
 void TIM2_IRQHandler(void)
 {
@@ -93,7 +94,7 @@ void TIM2_IRQHandler(void)
             REPORT_TIM_CAPTURE = (WAITINGSECOND / 200);
         }
     }
-
+ 
     // 进入发送一般报文流程
     if (TIM_GetITStatus(SENDING_TIMX, TIM_IT_Update) != RESET) //发生计数器溢出更新中断
     {
@@ -103,12 +104,12 @@ void TIM2_IRQHandler(void)
 
             TIM_Cmd(SENDING_TIMX, DISABLE);  // 关闭计时, 避免发送时间过长导致再次溢出
             TIM_SetCounter(SENDING_TIMX, 0); // 清除计数器
-
+            
             // 发送一般报文
             read_device_data();
-            encap_msg_sending(0, NULL);
+            EncapMsgSending(0, NULL);
             // end
-
+            
             TIM_ClearITPendingBit(SENDING_TIMX, TIM_IT_Update); //清除中断标志位, 避免开启定时器后再次进入定时器
             TIM_Cmd(SENDING_TIMX, ENABLE);                      // 开启计时
 
@@ -171,27 +172,33 @@ void USART1_IRQHandler(void)
             // 按照字节大小接收
             if (rec_num == RECESIZE)
             {
-                receiving_package_s receiving_package;
                 memcpy(&receiving_package, rec_data, sizeof(rec_data));
                 // 此时上位机数据接受完成
                 // 接受的串口缓冲区应该为空
 
                 // 应用新的状态指示
-                apply_control_signal(&receiving_package.device_status);
+                ApplyControlSignal(&receiving_package.device_status);
 
 #ifdef SHOW_TIME1
                 // 计算从发送报文到回应完全接收的耗时
-                char send_str[50];
+                char send_str[70];
+                const receiving_package_s *rp = &receiving_package;
                 uint32_t receive_delay = TIM_GetCapture4(SENDING_TIMX) + REPORT_TIM_CAPTURE * 2000;
-                sprintf(send_str, "ID:%d,Length:%d,T1=%.3fs (alarm count:%d)",
-                        receiving_package.device_ID, receiving_package.data_length,
+                sprintf(send_str, "ID:%d,Length:%d,[%d,%d,%d,%d,%d,%d,%d,%d,%d,%d] T1=%.3fs (alarm count:%d)",
+                        rp->device_ID, rp->data_length,
+                        rp->device_status.MotorGear,    rp->device_status.Rudder1Angle,
+                        rp->device_status.Rudder0Angle, rp->device_status.Highbeam,
+                        rp->device_status.Taillight,    rp->device_status.Headlight,
+                        rp->device_status.WaterIn,      rp->device_status.WaterOut,
+                        rp->device_status.SystemStatus0,rp->device_status.SystemStatus1,
                         receive_delay / 10000.0, ALARM_COUNT_TEST);
-                encap_msg_sending(1, send_str);
+                EncapMsgSending(1, send_str);
                 memset(send_str, '\0', strlen(send_str));
 #endif //SHOW_TIME1
 
                 // 清理工作
                 memset((void *)rec_data, '\0', RECESIZE); // 清空接收区域
+                memset((void *)&receiving_package, '\0', sizeof(receiving_package)); // 清空实际接收报文
                 rec_num = 2;                              // 重置接收数量
                 newline_flag = 0;                         // 重置接收头标识
 
@@ -320,6 +327,7 @@ void PendSV_Handler(void)
   */
 void SysTick_Handler(void)
 {
+   
 }
 
 /**

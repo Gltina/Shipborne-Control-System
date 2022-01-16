@@ -11,8 +11,8 @@
 
 #define USART RCC_APB2Periph_USART1
 #define USART_TX RCC_APB2Periph_GPIOA
-
-#define USART_AUX_GPIO_PIN GPIO_Pin_5
+ 
+#define USART_AUX_GPIO_PIN GPIO_Pin_0
 #define USART_TX_GPIO_PIN GPIO_Pin_9
 #define USART_RX_GPIO_PIN GPIO_Pin_10
     

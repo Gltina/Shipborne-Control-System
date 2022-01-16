@@ -1,28 +1,6 @@
-/**
-  ******************************************************************************
-  * @file    bsp_led.c
-  * @author  fire
-  * @version V1.0
-  * @date    2013-xx-xx
-  * @brief   led应用函数接口
-  ******************************************************************************
-  * @attention
-  *
-  * 实验平台:野火 F103-指南者 STM32 开发板 
-  * 论坛    :http://www.firebbs.cn
-  * 淘宝    :https://fire-stm32.taobao.com
-  *
-  ******************************************************************************
-  */
-
 #include "led.h"
 
-/**
-  * @brief  初始化控制LED的IO
-  * @param  无
-  * @retval 无
-  */
-void LED_GPIO_Config(void)
+void LED_Init(void)
 {
     /*定义一个GPIO_InitTypeDef类型的结构体*/
     GPIO_InitTypeDef GPIO_InitStructure;
@@ -61,6 +39,32 @@ void LED_GPIO_Config(void)
 
     /* 关闭所有led灯	*/
     GPIO_SetBits(LED3_GPIO_PORT, LED3_GPIO_PIN);
+    
+    
+    // 设置指示灯
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5; // 6为测试用
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AIN;
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
+    
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_DAC, ENABLE);
+    DAC_InitTypeDef DAC_InitStructure;
+    DAC_InitStructure.DAC_Trigger = DAC_Trigger_Software;
+    DAC_InitStructure.DAC_WaveGeneration = DAC_WaveGeneration_None; //不使用波形发生器
+    DAC_InitStructure.DAC_OutputBuffer = DAC_OutputBuffer_Enable;   //不使用 DAC 输出缓冲
+    //DAC_InitStructure.DAC_LFSRUnmask_TriangleAmplitude = DAC_LFSRUnmask_Bits11_0;
+    DAC_Init(DAC_Channel_1, &DAC_InitStructure);
+    DAC_Cmd(DAC_Channel_1, ENABLE);
 }
 
-/*********************************************END OF FILE**********************/
+void Open_SignalLED()
+{
+    DAC_SetChannel1Data(DAC_Align_12b_R,/*(2.0 / 3.3) * 4096*/4095);
+    DAC_SoftwareTriggerCmd(DAC_Channel_1,ENABLE);
+}
+
+void Close_SignalLED()
+{
+    DAC_SetChannel1Data(DAC_Align_12b_R,0);
+    DAC_SoftwareTriggerCmd(DAC_Channel_1,ENABLE);
+}
