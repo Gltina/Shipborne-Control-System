@@ -76,7 +76,7 @@ class MySerialShip:
                             # 添加到接收数据列表中
                             self.msg_list.append(curr_msg)
                             # 对数据进行解析
-                            self.decode_msg(curr_msg, 0)
+                            msg_decode.decode_msg(curr_msg, 0)
 
                             # 显示从发送回应报文到接收一般报文的耗时
                             self.communication_count += 1
@@ -106,7 +106,7 @@ class MySerialShip:
                             curr_msg.extend(
                                 ser.read(total_byte_len - 2 - 2 - 2))
                             # 对数据进行解析
-                            self.decode_msg(curr_msg, 1)
+                            msg_decode.decode_msg(curr_msg, 1)
 
                             # 完成后, 标志已经收到数据,但不会作为标准数据
                             # MsgCom.G_received_data_flag = False
@@ -180,25 +180,5 @@ class MySerialShip:
                 rx_size=4096, tx_size=4096)  # 默认4096 够大了
         except Exception as e:
             print("---error---: ", e)
-
-    def decode_msg(self, msg, msg_type):
-        if msg_type == 0:
-            res = s.unpack("<HhhhhhhfdfffBBBBBBBBBB", msg)
-            print(
-                "[From Slave] 设备ID:{}, 陀螺仪数值:A:{:.2f},{:.2f},{:.2f} G:{:.2f}°,{:.2f}°,{:.2f}°, 温度:{}".format(
-                    res[0],
-                    res[1] / 16384.0,
-                    res[2] / 16384.0,
-                    res[3] / 16384.0,
-                    res[4] / 131.0 * 57.29577,
-                    res[5] / 131.0 * 57.29577,
-                    res[6] / 131.0 * 57.29577,
-                    res[7],
-                    res[8],
-                )
-            )
-        elif msg_type == 1:
-            device_id = s.unpack("H", msg[:2])[0]
-            print("[From Slave] {}".format(msg[2:].decode("utf-8")))
 
     # return self.serial_object

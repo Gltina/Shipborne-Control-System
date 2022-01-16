@@ -6,7 +6,7 @@ import struct as s
 
 class MsgDecode:
     # 一般报文的解析格式
-    fmt_str = '<HhhhhhhfdfffBBBBBBBBBB'
+    fmt_str = '<HhhhhhhfffffBBBBBBBBBB'
 
     def __init__(self) -> None:
         self.original_msg = ""
@@ -24,3 +24,31 @@ class MsgDecode:
                     print("设备编号:{}, 数据长度:{}".format(res[1], res[2]))
                 else:
                     break
+
+    def decode_msg(self, msg, msg_type):
+        print("-----报文内容-----")
+        if msg_type == 0:
+            res = s.unpack(self.fmt_str, msg)
+            print(
+                "[From Slave] 设备ID:{}, 陀螺仪数值:A:{:.2f},{:.2f},{:.2f} G:{:.2f}° {:.2f}° {:.2f}°".format(
+                    res[0],
+                    res[1] / 16384.0,
+                    res[2] / 16384.0,
+                    res[3] / 16384.0,
+                    res[4] / 131.0 * 57.29577,
+                    res[5] / 131.0 * 57.29577,
+                    res[6] / 131.0 * 57.29577
+                ))
+            print("[From Slave] 水温:{:.2f}°C, 水深:{:.4f}cm, {:.4f}cm, 液面深度:{:.4f}cm,{:.4f}cm".format(res[7],
+                                                                                                   res[8],
+                                                                                                   res[9],
+                                                                                                   res[10],
+                                                                                                   res[11]))
+            print("[From Slave] 状态:{}".format(
+                [res[12 + i] for i in range(10)]))
+
+        elif msg_type == 1:
+            device_id = s.unpack("H", msg[:2])[0]
+            print("[From Slave] {}".format(msg[2:].decode("utf-8")))
+
+        print("-----over-----")

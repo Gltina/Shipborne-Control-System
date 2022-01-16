@@ -40,31 +40,23 @@ void LED_Init(void)
     /* 关闭所有led灯	*/
     GPIO_SetBits(LED3_GPIO_PORT, LED3_GPIO_PIN);
     
-    
     // 设置指示灯
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5; // 6为测试用
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AIN;
-    GPIO_Init(GPIOA, &GPIO_InitStructure);
-    
-    RCC_APB1PeriphClockCmd(RCC_APB1Periph_DAC, ENABLE);
-    DAC_InitTypeDef DAC_InitStructure;
-    DAC_InitStructure.DAC_Trigger = DAC_Trigger_Software;
-    DAC_InitStructure.DAC_WaveGeneration = DAC_WaveGeneration_None; //不使用波形发生器
-    DAC_InitStructure.DAC_OutputBuffer = DAC_OutputBuffer_Enable;   //不使用 DAC 输出缓冲
-    //DAC_InitStructure.DAC_LFSRUnmask_TriangleAmplitude = DAC_LFSRUnmask_Bits11_0;
-    DAC_Init(DAC_Channel_1, &DAC_InitStructure);
-    DAC_Cmd(DAC_Channel_1, ENABLE);
+    //RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
+    //GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5; // 6为测试用
+    //GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AIN;
+    //GPIO_Init(GPIOA, &GPIO_InitStructure);
 }
 
 void Open_SignalLED()
 {
-    DAC_SetChannel1Data(DAC_Align_12b_R,/*(2.0 / 3.3) * 4096*/4095);
-    DAC_SoftwareTriggerCmd(DAC_Channel_1,ENABLE);
+    //DAC_SetChannel1Data(DAC_Align_12b_R,/*(2.0 / 3.3) * 4096*/4095);
+    //DAC_SoftwareTriggerCmd(DAC_Channel_1,ENABLE);
+    LED_GREEN;
 }
 
 void Close_SignalLED()
 {
-    DAC_SetChannel1Data(DAC_Align_12b_R,0);
-    DAC_SoftwareTriggerCmd(DAC_Channel_1,ENABLE);
+    LED2_OFF;;
+    //DAC_SetChannel1Data(DAC_Align_12b_R,0);
+    //DAC_SoftwareTriggerCmd(DAC_Channel_1,ENABLE);
 }

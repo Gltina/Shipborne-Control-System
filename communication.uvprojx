@@ -528,6 +528,16 @@
               <FileType>5</FileType>
               <FilePath>.\SendingEnd\sendingEnd.h</FilePath>
             </File>
+            <File>
+              <FileName>engine775.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Engine755\engine775.c</FilePath>
+            </File>
+            <File>
+              <FileName>engine775.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Engine755\engine775.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

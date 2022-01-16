@@ -33,7 +33,10 @@ int8_t Init_Device()
 
     // I2C
     I2C_Bus_Init();
-
+    
+    //主电机初始化
+    ENGINE775_Init();
+    
     // DS18B20
     while (DS18B20_Init())
     {
