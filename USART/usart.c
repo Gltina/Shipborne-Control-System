@@ -53,7 +53,8 @@ void USART_Configuration(void)
     // AUX
     GPIO_InitStructure.GPIO_Pin = USART_AUX_GPIO_PIN;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
-	GPIO_Init(USART_RX_GPIO_PORT, &GPIO_InitStructure);
+	GPIO_Init(USART_AUX_GPIO_PORT, &GPIO_InitStructure);
+    GPIO_ResetBits(USART_AUX_GPIO_PORT, USART_AUX_GPIO_PIN);
     
 	// 配置串口的工作参数	
 	USART_InitStructure.USART_BaudRate = 9600;
