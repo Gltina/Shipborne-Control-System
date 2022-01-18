@@ -33,10 +33,10 @@ int8_t Init_Device()
 
     // I2C
     I2C_Bus_Init();
-    
+
     //主电机初始化
-    ENGINE775_Init();
-    
+    Engine775_Init();
+
     // DS18B20
     while (DS18B20_Init())
     {
@@ -53,7 +53,7 @@ int8_t Init_Device()
 
     // 舵机
     MG90S_Init();
-    
+
     // 水压传感器
     WaterPress_Init();
     // 水箱控制模块
@@ -61,10 +61,10 @@ int8_t Init_Device()
     // 初始化水箱液面和水压传感器的ADC
     Init_ADC1();
     Init_DMA();
-    
+
     // 水流计速器
     //S201C_Init();
-    
+
     // 启动自动发送模块
     SendingEnd_Init();
 
@@ -91,7 +91,6 @@ void read_device_data()
 
     // 获取水压传感器和水箱液面传感器的数值
     Get_ADC1_Value(&device_data);
-    
 }
 
 void report_device_data()
@@ -228,11 +227,11 @@ void ApplyControlSignal(device_status_s *new_status)
     {
         device_status.Rudder0Angle = new_status->Rudder0Angle;
         // 测试舵机
-        if (device_status.Rudder0Angle == 0)
+        if (device_status.Rudder0Angle == 1)
         {
             Servo_Control(0);
         }
-        else if (device_status.Rudder0Angle == 1)
+        else if (device_status.Rudder0Angle == 2)
         {
             Servo_Control(180);
         }
@@ -245,14 +244,14 @@ void ApplyControlSignal(device_status_s *new_status)
     if (new_status->Highbeam == 0 || new_status->Highbeam == 1)
     {
         device_status.Highbeam = new_status->Highbeam;
-        
-        if(device_status.Highbeam == 1)
+
+        if (device_status.Highbeam == 1)
         {
-            Open_SignalLED();
+            //Open_SignalLED();
         }
-        else if(device_status.Highbeam == 0)
+        else if (device_status.Highbeam == 0)
         {
-            Close_SignalLED();
+            //Close_SignalLED();
         }
     }
     if (device_status.Taillight != new_status->Taillight)
@@ -283,6 +282,11 @@ void ApplyControlSignal(device_status_s *new_status)
 
         //encap_msg_sending(1,"set out");
     }
+    // 设置系统状态
+    if (new_status->SystemStatus0 == 1)
+    {
+        ADC1_Calibration();
+    }
 }
 
 void Init_ADC1()
@@ -290,122 +294,137 @@ void Init_ADC1()
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1, ENABLE);
 
     //ADC_DeInit(ADC1);
-    RCC_ADCCLKConfig(RCC_PCLK2_Div6); //设置ADC时钟 一般不超过14MHZ 否则精度不准确  72MHZ/6=12MHZ
+    RCC_ADCCLKConfig(RCC_PCLK2_Div8); //设置ADC时钟 一般不超过14MHZ 否则精度不准确  72MHZ/6=12MHZ
     ADC_InitTypeDef ADC_InitStructure;
     ADC_InitStructure.ADC_Mode = ADC_Mode_Independent;                  //ADC 工作模式:独立模式
     ADC_InitStructure.ADC_ScanConvMode = ENABLE;                        //AD 通道模式;
     ADC_InitStructure.ADC_ContinuousConvMode = ENABLE;                  //AD 转换模式
     ADC_InitStructure.ADC_ExternalTrigConv = ADC_ExternalTrigConv_None; //转换由软件而不是外部触发启动
-    ADC_InitStructure.ADC_DataAlign = ADC_DataAlign_Right;      //ADC 数据右对齐;
-    ADC_InitStructure.ADC_NbrOfChannel = ADC_M;                //顺序进行规则转换的 ADC 
+    ADC_InitStructure.ADC_DataAlign = ADC_DataAlign_Right;              //ADC 数据右对齐;
+    ADC_InitStructure.ADC_NbrOfChannel = ADC_M;                         //顺序进行规则转换的 ADC
     ADC_Init(ADC1, &ADC_InitStructure);
-   
+
     // 4个通道的采集顺序
     ADC_RegularChannelConfig(ADC1, ADC_Channel_1, 1, ADC_SampleTime_239Cycles5); //设定ADC规则组 // 水深1
     ADC_RegularChannelConfig(ADC1, ADC_Channel_2, 2, ADC_SampleTime_239Cycles5); //设定ADC规则组 // 水深1
     ADC_RegularChannelConfig(ADC1, ADC_Channel_3, 3, ADC_SampleTime_239Cycles5); //设定ADC规则组 // 液面1
     ADC_RegularChannelConfig(ADC1, ADC_Channel_4, 4, ADC_SampleTime_239Cycles5); //设定ADC规则组 // 液面2
-    
+
     ADC_DMACmd(ADC1, ENABLE);
     ADC_Cmd(ADC1, ENABLE); //使能ADC1
 
+    // 校准ADC
+    ADC1_Calibration();
+
+    //由于没有采用外部触发，所以使用软件触发 ADC 转换
+    ADC_SoftwareStartConvCmd(ADC1, ENABLE);
+}
+
+void ADC1_Calibration()
+{
     // ADC 开始校准
     ADC_ResetCalibration(ADC1);
     //等待复位校准结束
-    while (ADC_GetResetCalibrationStatus(ADC1));
+    while (ADC_GetResetCalibrationStatus(ADC1))
+        ;
     //重置指定的 ADC 的校准寄存器
     ADC_StartCalibration(ADC1);
     //等待校准结束
-    while (ADC_GetCalibrationStatus(ADC1));
-    
-    //由于没有采用外部触发，所以使用软件触发 ADC 转换
-    ADC_SoftwareStartConvCmd(ADC1, ENABLE);
+    while (ADC_GetCalibrationStatus(ADC1))
+        ;
 }
 
 void Init_DMA()
 {
     DMA_InitTypeDef DMA_InitStructure;
-    
+
     //DMA_DeInit(DMA1_Channel1);
-    
+
     /*开启DMA时钟*/
-    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1, ENABLE);    
-    
+    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1, ENABLE);
+
     /*设置DMA外设ADC地址*/
-    DMA_InitStructure.DMA_PeripheralBaseAddr =  (uint32_t)&( ADC1->DR );
+    DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t) & (ADC1->DR);
 
     /*设置DMA内存基地址*/
     DMA_InitStructure.DMA_MemoryBaseAddr = (uint32_t)AD_value;
-    
-    /*数据源来自外设*/        
-    DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralSRC;    
 
-    /*传输大小*/    
+    /*数据源来自外设*/
+    DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralSRC;
+
+    /*传输大小*/
     DMA_InitStructure.DMA_BufferSize = ADC_N * ADC_M;
 
-    /*外设寄存器只有一个，地址不用递增*/      
-    DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable; 
+    /*外设寄存器只有一个，地址不用递增*/
+    DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
 
     /*存储器地址递增*/
-    DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;    
+    DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
 
-    /*ReceiveBuff数据单位*/    
+    /*ReceiveBuff数据单位*/
     DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_HalfWord;
 
     /*SENDBUFF_SIZE数据单位*/
-    DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_HalfWord;     
+    DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_HalfWord;
 
     /*DMA模式：循环模式*/
-    DMA_InitStructure.DMA_Mode = DMA_Mode_Circular ;
+    DMA_InitStructure.DMA_Mode = DMA_Mode_Circular;
 
-    /*优先级：中, 当使用一个ADC时, 优先级无影响*/    
-    DMA_InitStructure.DMA_Priority = DMA_Priority_High;  
+    /*优先级：中, 当使用一个ADC时, 优先级无影响*/
+    DMA_InitStructure.DMA_Priority = DMA_Priority_High;
 
     /*使能内存到内存的传输    */
     DMA_InitStructure.DMA_M2M = DMA_M2M_Disable;
 
-    /*配置DMA1的1通道, ADC1 对应 DMA1 通道 1，ADC3 对应 DMA2 通道 5，ADC2 没有 DMA 功能*/           
-    DMA_Init(DMA1_Channel1, &DMA_InitStructure);        
-    
+    /*配置DMA1的1通道, ADC1 对应 DMA1 通道 1，ADC3 对应 DMA2 通道 5，ADC2 没有 DMA 功能*/
+    DMA_Init(DMA1_Channel1, &DMA_InitStructure);
+
     /*失能DMA1的1通道，一旦使能就开始传输*/
-    DMA_Cmd (DMA1_Channel1,ENABLE);
+    DMA_Cmd(DMA1_Channel1, ENABLE);
 }
 
-void filter_ADC1_value()
+void Get_ADC1_Value(device_data_s *device_data)
 {
-    //#define ADC_N 10    // 每个通道采集十次 
-    //#define ADC_M 4     // 四个通道
-    //static uint16_t AD_value[ADC_N][ADC_M]; // AD采集的结果
-    //static float AD_filtered_value[ADC_M];  // AD过滤后的值
-     
-    for(uint8_t i =0;i< ADC_M; i++)
+    // 等待转换完成
+    while (!DMA_GetFlagStatus(DMA1_FLAG_TC1))
+        ;
+    float AD_filtered_value[ADC_M]; // AD过滤后的值
+    filter_ADC1_value(AD_filtered_value);
+    
+    DMA_ClearFlag(DMA1_FLAG_TC1);
+    
+    if (ADC_M < 4)
+        return;
+
+    device_data->WaterDepth0 = WaterDepth_Func(AD_filtered_value[0] * 3.3 / 4096);
+    device_data->WaterDepth1 = WaterDepth_Func(AD_filtered_value[1] * 3.3 / 4096);
+    
+    device_data->WaterTankDepth0 = WaterTankLevel_Func(AD_filtered_value[2] * 3.3 / 4096);
+    device_data->WaterTankDepth1 = WaterTankLevel_Func(AD_filtered_value[3] * 3.3 / 4096);
+}
+
+void filter_ADC1_value(float *AD_filtered_value)
+{
+    for (uint8_t i = 0; i < ADC_M; ++i)
     {
-        uint32_t total_value = 0;
-        for(uint8_t j =0;j< ADC_N; j++)
+        uint16_t value_tmp[ADC_N] = {};
+
+        for (uint8_t j = 0; j < ADC_N; ++j)
         {
-//            char value[2];
-//            sprintf(value, "%d", AD_value[j][i]);
-//            EncapMsgSending(1,value);
-            
-            total_value += AD_value[j][i];
+            value_tmp[j] = AD_value[j][i];
         }
-        AD_filtered_value[i] = ((float)total_value / ADC_N)* 3.3 / 4096.0;
+        
+        AD_filtered_value[i] =
+            MVA_Filtering(value_tmp, ADC_N);
     }
 }
 
-void Get_ADC1_Value(device_data_s * device_data)
-{    
-    // 等待转换完成
-    while(!DMA_GetFlagStatus(DMA1_FLAG_TC1));
-    DMA_ClearFlag(DMA1_FLAG_TC1);
-    
-    filter_ADC1_value();
-    
-    if(ADC_M < 4) return;
-    
-    device_data->WaterDepth0    = AD_filtered_value[0];
-    device_data->WaterDepth1    = AD_filtered_value[1];
-    device_data->WaterTankDepth0= AD_filtered_value[2];
-    device_data->WaterTankDepth1= AD_filtered_value[3];
-    
+float WaterDepth_Func(float voltage)
+{
+    return voltage;//(voltage*426 - 411.415);
+}
+
+float WaterTankLevel_Func(float voltage)
+{
+    return voltage;
 }

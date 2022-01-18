@@ -51,12 +51,12 @@ void Open_SignalLED()
 {
     //DAC_SetChannel1Data(DAC_Align_12b_R,/*(2.0 / 3.3) * 4096*/4095);
     //DAC_SoftwareTriggerCmd(DAC_Channel_1,ENABLE);
-    LED_GREEN;
+    //LED_GREEN;
 }
 
 void Close_SignalLED()
 {
-    LED2_OFF;;
+    //LED2_OFF;;
     //DAC_SetChannel1Data(DAC_Align_12b_R,0);
     //DAC_SoftwareTriggerCmd(DAC_Channel_1,ENABLE);
 }

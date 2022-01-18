@@ -31,7 +31,6 @@
 #define ADC_N 10    // 每个通道采集十次 
 #define ADC_M 4     // 四个通道
 static uint16_t AD_value[ADC_N][ADC_M]; // AD采集的结果
-static float AD_filtered_value[ADC_M];  // AD过滤后的值
 
 // 设备状态
 typedef struct device_status_s
@@ -152,9 +151,14 @@ void Init_DMA();
 void Get_ADC1_Value(device_data_s * device_data);
 
 /*
-    对ADC1的结果进行过滤,
+    校准ADC1
+    
 */
-void filter_ADC1_value();
+void ADC1_Calibration();
+
+// 将ADC数组过滤到指定数组
+//
+void filter_ADC1_value(float *AD_filtered_value);
 
 /*
     包装并且发送,支持发送一般报文和字符串数据
@@ -170,5 +174,9 @@ void EncapMsgSending(uint8_t data_type, char *send_str);
     一般来说,@new_status是由上位机发送得来
 */
 void ApplyControlSignal(device_status_s *new_status);
+
+float WaterDepth_Func(float voltage);
+
+float WaterTankLevel_Func(float voltage);
 
 #endif

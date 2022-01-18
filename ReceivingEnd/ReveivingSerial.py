@@ -37,10 +37,12 @@ if __name__ == "__main__":
         elif input_str == "oo":
             msg_encode.change_control_signal("WaterOut", 1)
         elif input_str == "d0":
-            msg_encode.change_control_signal("Rudder0Angle", 0)
-        elif input_str == "d1":
             msg_encode.change_control_signal("Rudder0Angle", 1)
+        elif input_str == "d1":
+            msg_encode.change_control_signal("Rudder0Angle", 2)
         elif input_str == "lo":  # LED open
             msg_encode.change_control_signal("Highbeam", 1)
         elif input_str == "lc":  # LED open
             msg_encode.change_control_signal("Highbeam", 0)
+        elif input_str == "ar":  # ADC calibration
+            msg_encode.change_control_signal("SystemStatus0", 1)
