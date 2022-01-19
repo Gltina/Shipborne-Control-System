@@ -220,8 +220,7 @@ void ApplyControlSignal(device_status_s *new_status)
 
     if (device_status.MotorGear != new_status->MotorGear)
     {
-        device_status.MotorGear = new_status->MotorGear;
-        // action
+        device_status.MotorGear = Engine_Control(new_status->MotorGear);
     }
     if (device_status.Rudder0Angle != new_status->Rudder0Angle)
     {

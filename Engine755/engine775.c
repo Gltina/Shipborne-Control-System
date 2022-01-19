@@ -1,5 +1,6 @@
-#include "../DeviceManage/deviceManage.h"
 #include "engine775.h"
+
+static uint8_t curr_egine_status = 's';
 
 // 双775电机的频率可设计为  10khz  arr = 99  psc = 71
 /**
@@ -7,6 +8,7 @@
 	*  @param s1_pin and s2_pin are the pins, arr and psc are the parameters to set the frequnecy of engine775
 	*  @retval None
 */
+
 void Engine775_Init(void)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
@@ -47,121 +49,155 @@ void Engine775_Init(void)
 	TIM_ARRPreloadConfig(TIM1, ENABLE); //使能TIMx在ARR上的预装载寄存器
 	TIM_Cmd(TIM1, ENABLE);				//使能TIM1
 
+	stop_normal();
+}
+
+void stop_normal(void)
+{
 	TIM_SetCompare1(TIM1, 0);
 	TIM_SetCompare4(TIM1, 0);
 }
 
-static int status_engine = 0;
-
-u8 Engine_control(u8 instruction)
+void stop_emergency()
 {
-	status_engine = instruction;
+	TIM_SetCompare1(TIM1, 100);
+	TIM_SetCompare4(TIM1, 100);
+}
 
-	// 停止
+uint8_t judge_status(uint8_t new_status)
+{
+	//状态不变, 不需要操作
+	if (curr_egine_status == new_status)
+	{
+		return 0;
+	}
+	//当前正转 而收到的指令为反转
+	else if (curr_egine_status >= '0' && curr_egine_status <= '4' && new_status >= '5' && new_status <= '9')
+	{
+		return 1;
+	}
+	// 当前反转 而收到的指令为正转
+	else if (curr_egine_status >= '5' && curr_egine_status <= '9' && new_status >= '0' && new_status <= '4')
+	{
+		return 2;
+	}
+	// 当前正转收到的指令也为正转（当前反转 收到的指令也为反转）
+	// 进档
+	else
+	{
+		return 3;
+	}
+}
+
+void change_engine_status(uint8_t instruction)
+{
 	if (instruction == 's')
 	{
 		stop_normal();
-		return ('S');
 	}
-	//刹车
 	else if (instruction == 'o')
 	{
-		TIM_SetCompare1(TIM1, 100);
-		TIM_SetCompare4(TIM1, 100);
-		// 大写的O
-		return ('O');
+		stop_emergency();
 	}
-	// 正转的5个档位 0-4
+
+	// 正转的5个档位 '0'-'4'
 	else if (instruction == '0')
 	{
 
 		TIM_SetCompare1(TIM1, 60);
 		TIM_SetCompare4(TIM1, 0);
-
-		return (0);
 	}
 	else if (instruction == '1')
 	{
-
 		TIM_SetCompare1(TIM1, 70);
 		TIM_SetCompare4(TIM1, 0);
-
-		return (1);
 	}
 	else if (instruction == '2')
 	{
 		TIM_SetCompare1(TIM1, 80);
 		TIM_SetCompare4(TIM1, 0);
-
-		return (2);
 	}
 	else if (instruction == '3')
 	{
 		TIM_SetCompare1(TIM1, 90);
 		TIM_SetCompare4(TIM1, 0);
-		return (3);
 	}
 	else if (instruction == '4')
 	{
 		TIM_SetCompare1(TIM1, 100);
 		TIM_SetCompare4(TIM1, 0);
-		return (4);
 	}
-	//反转的五个档位 5-9
+
+	//反转的五个档位 '5'-'9'
 	else if (instruction == '5')
 	{
-		stop_normal();
-
-		DELAY_MS(500);
 		TIM_SetCompare1(TIM1, 0);
 		TIM_SetCompare4(TIM1, 60);
-		return (5);
 	}
 	else if (instruction == '6')
 	{
-		stop_normal();
-
-		DELAY_MS(500);
 		TIM_SetCompare1(TIM1, 0);
 		TIM_SetCompare4(TIM1, 70);
-		return (6);
 	}
 	else if (instruction == '7')
 	{
-		stop_normal();
 
-		DELAY_MS(500);
 		TIM_SetCompare1(TIM1, 0);
 		TIM_SetCompare4(TIM1, 80);
-		return (7);
 	}
 	else if (instruction == '8')
 	{
-		stop_normal();
 
-		DELAY_MS(500);
 		TIM_SetCompare1(TIM1, 0);
 		TIM_SetCompare4(TIM1, 90);
-		return (8);
 	}
 	else if (instruction == '9')
 	{
-		stop_normal();
-
-		DELAY_MS(500);
 		TIM_SetCompare1(TIM1, 0);
 		TIM_SetCompare4(TIM1, 100);
-		return (9);
 	}
-	//命令输出无效
+	//无效的命令输出
 	else
 	{
-		return ('N');
+		//printf("engine instruction invalid1\n");
 	}
 }
 
-void stop_normal()
+uint8_t Engine_Control(uint8_t instruction)
 {
-	TIM_SetCompare1(TIM1, 0);
-	TIM_SetCompare4(TIM1, 0);
+	uint8_t judge_result =
+		judge_status(instruction);
+
+	if (judge_result == 0)
+	{
+		// 无效指令
+	}
+
+	// 由正转反, 先停车在启动
+	else if (judge_result == 1)
+	{
+		stop_normal();
+		DELAY_ENGINE;
+		change_engine_status(instruction);
+	}
+	// 由反转正, 先停车在启动
+	else if (judge_result == 2)
+	{
+		stop_normal();
+		DELAY_ENGINE;
+		change_engine_status(instruction);
+	}
+	else if (judge_result == 3)
+	{
+		change_engine_status(instruction);
+	}
+	else
+	{
+		//printf("engine instruction invalid2\n");
+	}
+
+	// 更新当前状态
+	curr_egine_status = instruction;
+
+	return curr_egine_status;
 }
