@@ -40,4 +40,6 @@ void stop_normal();
 // 上电关机, 急停
 void stop_emergency();
 
+uint8_t get_curr_engine_status();
+
 #endif

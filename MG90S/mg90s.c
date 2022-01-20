@@ -80,3 +80,19 @@ void Servo_Control(uint16_t angle)
         printf("<MG90S error> angle error\r\n");
     }
 }
+
+void set_angle(uint8_t signal)
+{
+    if (signal == 0)
+    {
+        Servo_Control(0);
+    }
+    else if (signal == 1)
+    {
+        Servo_Control(90);
+    }
+    else if (signal == 2)
+    {
+        Servo_Control(180);
+    }
+}

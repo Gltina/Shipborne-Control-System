@@ -9,6 +9,8 @@ void MG90S_TIM_Init(u16 arr, u16 psc);
 
 void MG90S_GPIO_Init(void);
 
+void set_angle(uint8_t signal);
+
 void Servo_Control(uint16_t angle);
 
 #define CLK RCC_APB2Periph_GPIOB

@@ -17,6 +17,7 @@ class MsgEncode:
     # 初始化时需要设置控制位的数量
     def __init__(self, control_signal_num) -> None:
         self.control_list = [int(0)] * control_signal_num
+        self.control_list[0] = ord('s')
         pass
 
     # 生成可发送的字节流
@@ -77,4 +78,4 @@ class MsgEncode:
         elif key == "SystemStatus1":
             self.control_list[9] = value
 
-        print("[From PC]", *self.control_list)
+        # print("[From PC]", *self.control_list)

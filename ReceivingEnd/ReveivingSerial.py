@@ -1,6 +1,9 @@
 # coding=utf-8
+# ½öÓÃÓÚ²âÊÔ
 from MySerialShip import *
 from MsgDecode import *
+
+
 
 if __name__ == "__main__":
 

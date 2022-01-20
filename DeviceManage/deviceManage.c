@@ -3,8 +3,8 @@
 //extern struct device_data_s device_data;
 
 uint8_t DS18B20ID[8];
-device_data_s device_data;
-device_status_s device_status;
+static device_data_s device_data;
+static device_status_s device_status;
 
 void init_device_status()
 {
@@ -19,10 +19,14 @@ void init_device_status()
     device_data.WaterSpeed = 0;
     device_data.WaterTankDepth = 0;
     */
+    device_status.MotorGear = 's';
 }
 
 int8_t Init_Device()
 {
+    // 初始化当前潜艇状态
+    init_device_status();
+    
     Delay_Init(72);
 
     // USART
@@ -64,10 +68,13 @@ int8_t Init_Device()
 
     // 水流计速器
     //S201C_Init();
-
+    
+    // 初始化所有传感器状态
+    ApplyControlSignal(&device_status);
+    
     // 启动自动发送模块
     SendingEnd_Init();
-
+    
     return 0;
 }
 
@@ -75,7 +82,7 @@ void read_device_data()
 {
     // TODO:检查全部状态
     //int8_t status;
-
+    
     // 温度传感器
     device_data.Temperature =
         DS18B20_GetTemp_MatchRom(DS18B20ID);
@@ -217,47 +224,52 @@ void ApplyControlSignal(device_status_s *new_status)
     //           new_status->WaterIn,
     //           new_status->WaterOut
     //    );
-
+    
+    // 调整主动力电机档位
     if (device_status.MotorGear != new_status->MotorGear)
     {
-        device_status.MotorGear = Engine_Control(new_status->MotorGear);
+        Engine_Control(new_status->MotorGear);
+        
+        device_status.MotorGear = get_curr_engine_status();
+        
+//        char test[20];
+//        sprintf(test, "m:%d",device_status.MotorGear);
+//        EncapMsgSending(1, test);
+        
     }
+    // 调整舵机角度
     if (device_status.Rudder0Angle != new_status->Rudder0Angle)
     {
         device_status.Rudder0Angle = new_status->Rudder0Angle;
-        // 测试舵机
-        if (device_status.Rudder0Angle == 1)
-        {
-            Servo_Control(0);
-        }
-        else if (device_status.Rudder0Angle == 2)
-        {
-            Servo_Control(180);
-        }
+        //action
+        
+        // test
+        set_angle(device_status.Rudder0Angle);
+        
+        char test[20];
+        sprintf(test, "m:%d",device_status.Rudder0Angle);
+        EncapMsgSending(1, test);
+        
     }
     if (device_status.Rudder1Angle != new_status->Rudder1Angle)
     {
         device_status.Rudder1Angle = new_status->Rudder1Angle;
         // action
     }
-    if (new_status->Highbeam == 0 || new_status->Highbeam == 1)
+    
+    // 调整远关灯
+    if (device_status.Highbeam != new_status->Highbeam)
     {
         device_status.Highbeam = new_status->Highbeam;
 
-        if (device_status.Highbeam == 1)
-        {
-            //Open_SignalLED();
-        }
-        else if (device_status.Highbeam == 0)
-        {
-            //Close_SignalLED();
-        }
     }
+    // 调整尾灯
     if (device_status.Taillight != new_status->Taillight)
     {
         device_status.Taillight = new_status->Taillight;
         // action
     }
+    // 调整前照灯
     if (device_status.Headlight != new_status->Headlight)
     {
         device_status.Headlight = new_status->Headlight;
@@ -282,9 +294,14 @@ void ApplyControlSignal(device_status_s *new_status)
         //encap_msg_sending(1,"set out");
     }
     // 设置系统状态
-    if (new_status->SystemStatus0 == 1)
+    if (device_status.SystemStatus0 != new_status->SystemStatus0)
     {
-        ADC1_Calibration();
+        device_status.SystemStatus0 = new_status->SystemStatus0;
+    }
+    
+    if (device_status.SystemStatus1 != new_status->SystemStatus1)
+    {
+        device_status.SystemStatus1 = new_status->SystemStatus1;
     }
 }
 

@@ -1,6 +1,6 @@
 #include "engine775.h"
 
-static uint8_t curr_egine_status = 's';
+uint8_t curr_egine_status;
 
 // 双775电机的频率可设计为  10khz  arr = 99  psc = 71
 /**
@@ -11,6 +11,8 @@ static uint8_t curr_egine_status = 's';
 
 void Engine775_Init(void)
 {
+    curr_egine_status = 's';
+    
 	GPIO_InitTypeDef GPIO_InitStructure;
 	TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
 	TIM_OCInitTypeDef TIM_OCInitStructure;
@@ -170,9 +172,8 @@ uint8_t Engine_Control(uint8_t instruction)
 
 	if (judge_result == 0)
 	{
-		// 无效指令
+		// 重复指令
 	}
-
 	// 由正转反, 先停车在启动
 	else if (judge_result == 1)
 	{
@@ -187,10 +188,12 @@ uint8_t Engine_Control(uint8_t instruction)
 		DELAY_ENGINE;
 		change_engine_status(instruction);
 	}
+    // 进档
 	else if (judge_result == 3)
 	{
 		change_engine_status(instruction);
 	}
+    // 
 	else
 	{
 		//printf("engine instruction invalid2\n");
@@ -200,4 +203,10 @@ uint8_t Engine_Control(uint8_t instruction)
 	curr_egine_status = instruction;
 
 	return curr_egine_status;
+}
+
+
+uint8_t get_curr_engine_status()
+{
+    return curr_egine_status;
 }

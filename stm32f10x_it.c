@@ -184,10 +184,10 @@ void USART1_IRQHandler(void)
                 char send_str[70];
                 const receiving_package_s *rp = &receiving_package;
                 uint32_t receive_delay = TIM_GetCapture4(SENDING_TIMX) + REPORT_TIM_CAPTURE * 2000;
-                sprintf(send_str, "ID:%d,Length:%d,[%d,%d,%d,%d,%d,%d,%d,%d,%d,%d] T1=%.3fs (alarm count:%d)",
+                sprintf(send_str, "ID:%d,Length:%d,[%c,%d,%d,%d,%d,%d,%d,%d,%d,%d] T1=%.3fs (alarm count:%d)",
                         rp->device_ID, rp->data_length,
-                        rp->device_status.MotorGear,    rp->device_status.Rudder1Angle,
-                        rp->device_status.Rudder0Angle, rp->device_status.Highbeam,
+                        rp->device_status.MotorGear,    rp->device_status.Rudder0Angle,
+                        rp->device_status.Rudder1Angle, rp->device_status.Highbeam,
                         rp->device_status.Taillight,    rp->device_status.Headlight,
                         rp->device_status.WaterIn,      rp->device_status.WaterOut,
                         rp->device_status.SystemStatus0,rp->device_status.SystemStatus1,

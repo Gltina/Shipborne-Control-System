@@ -15,12 +15,13 @@ msg_decode = MsgDecode()
 # 显示发送回应报文到完全接收潜艇报文的耗时
 # SHOW_TIME2 = True
 # 初始化信号量
-se = Semaphore(1)
+# se = Semaphore(1)
+
+# 记录接收的每条数据
+msg_list = []
 
 
 class MySerialShip:
-    # 记录接收的每条数据
-    msg_list = []
     # 接收数据线程
     reading_threading_flag = True
     # 发送数据线程
@@ -38,7 +39,7 @@ class MySerialShip:
 
     def check_comports(self):
         port_list = list(serial.tools.list_ports.comports())
-        print(port_list)
+        return port_list
 
     def get_msg_size(self):
         return len(self.msg_list)
@@ -74,22 +75,22 @@ class MySerialShip:
                             curr_msg.extend(
                                 ser.read(total_byte_len - 2 - 2 - 2))
                             # 添加到接收数据列表中
-                            self.msg_list.append(curr_msg)
+                            msg_list.append([0, curr_msg])
                             # 对数据进行解析
-                            msg_decode.decode_msg(curr_msg, 0)
+                            # msg_decode.decode_msg_print(curr_msg, 0)
 
                             # 显示从发送回应报文到接收一般报文的耗时
-                            self.communication_count += 1
-                            t_receive = time.perf_counter()
-                            t_diff = t_receive - self.t_response
-                            self.t_total += t_diff
-                            print(
-                                "[From PC] #{} Consumed Time(T2):{:.3f}s".format(
-                                    self.communication_count,
-                                    round(self.t_total /
-                                          self.communication_count, 3)
-                                )
-                            )
+                            # self.communication_count += 1
+                            # t_receive = time.perf_counter()
+                            # t_diff = t_receive - self.t_response
+                            # self.t_total += t_diff
+                            # print(
+                            #     "[From PC] #{} Consumed Time(T2):{:.3f}s".format(
+                            #         self.communication_count,
+                            #         round(self.t_total /
+                            #               self.communication_count, 3)
+                            #     )
+                            # )
 
                             # 发送回应报文
                             self.serial_object.write(
@@ -105,8 +106,10 @@ class MySerialShip:
                             # 前面的数据分别是: 标识头(2)+报文类型(2)+数据长度(2)
                             curr_msg.extend(
                                 ser.read(total_byte_len - 2 - 2 - 2))
+                            # 添加到接收数据列表中
+                            msg_list.append([1, curr_msg])
                             # 对数据进行解析
-                            msg_decode.decode_msg(curr_msg, 1)
+                            # msg_decode.decode_msg_print(curr_msg, 1)
 
                             # 完成后, 标志已经收到数据,但不会作为标准数据
                             # MsgCom.G_received_data_flag = False
@@ -127,9 +130,6 @@ class MySerialShip:
                 newline_flag = 0
                 continue
         # end while
-        # 结束串口接收进程
-        while self.serial_object.is_open():
-            self.serial_object.close()
 
     # def send_data(self, ser):
     #     while self.sending_threading_flag:
@@ -147,6 +147,12 @@ class MySerialShip:
 
     def close_read_data_threading(self):
         self.reading_threading_flag = False
+        if self.serial_object.is_open:
+            self.serial_object.close()
+
+    def close_serial(self):
+        if self.serial_object.is_open:
+            self.serial_object.close()
 
     # def close_send_data_threading(self):
     #     self.sending_threading_flag = False
