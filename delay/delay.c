@@ -1,7 +1,7 @@
 #include "../delay/delay.h"
 
-static u8  fac_us=0;//us延时倍乘数
-static u16 fac_ms=0;//ms延时倍乘数
+static u8 fac_us = 0;  //us延时倍乘数
+static u16 fac_ms = 0; //ms延时倍乘数
 
 void Delay_Init(u8 SYSCLK)
 {
@@ -26,8 +26,9 @@ void delay_ms(u16 nms)
 	{
 		temp = SysTick->CTRL;
 	} while (temp & 0x01 && !(temp & (1 << 16))); //等待时间到达
-	SysTick->CTRL = 0x00;						  //关闭计数器
-	SysTick->VAL = 0X00;						  //清空计数器
+
+	SysTick->CTRL = 0x00; //关闭计数器
+	SysTick->VAL = 0X00;  //清空计数器
 }
 
 //延时nus

@@ -77,20 +77,22 @@ class MySerialShip:
                             # 添加到接收数据列表中
                             msg_list.append([0, curr_msg])
                             # 对数据进行解析
-                            # msg_decode.decode_msg_print(curr_msg, 0)
+                            msg_decode.decode_msg_print(0, curr_msg)
 
                             # 显示从发送回应报文到接收一般报文的耗时
-                            # self.communication_count += 1
-                            # t_receive = time.perf_counter()
-                            # t_diff = t_receive - self.t_response
-                            # self.t_total += t_diff
-                            # print(
-                            #     "[From PC] #{} Consumed Time(T2):{:.3f}s".format(
-                            #         self.communication_count,
-                            #         round(self.t_total /
-                            #               self.communication_count, 3)
-                            #     )
-                            # )
+                            self.communication_count += 1
+                            if self.communication_count > 1:
+                                t_received = time.perf_counter()
+                                t_diff = t_received - self.t_response
+                                self.t_total += t_diff
+                                print(
+                                    "[From PC] #{} Consumed Time(T2): current:{:.3f}s average:{:.3f}s".format(
+                                        self.communication_count,
+                                        round(t_diff, 3),
+                                        round(self.t_total /
+                                              (self.communication_count-1), 3)
+                                    )
+                                )
 
                             # 发送回应报文
                             self.serial_object.write(
@@ -109,7 +111,7 @@ class MySerialShip:
                             # 添加到接收数据列表中
                             msg_list.append([1, curr_msg])
                             # 对数据进行解析
-                            # msg_decode.decode_msg_print(curr_msg, 1)
+                            msg_decode.decode_msg_print(1, curr_msg)
 
                             # 完成后, 标志已经收到数据,但不会作为标准数据
                             # MsgCom.G_received_data_flag = False
@@ -128,6 +130,9 @@ class MySerialShip:
                     e.__traceback__.tb_lineno, e))
                 curr_msg = bytearray()
                 newline_flag = 0
+                # TODO
+                # 清空串口缓冲
+                # 再次发送数据
                 continue
         # end while
 

@@ -3,30 +3,29 @@
 //extern struct device_data_s device_data;
 
 uint8_t DS18B20ID[8];
-static device_data_s device_data;
-static device_status_s device_status;
 
-void init_device_status()
+void init_device_status_data(device_data_s *device_data, device_status_s *device_status)
 {
-    memset(&device_data, 0, sizeof(device_data_s));
-    memset(&device_status, 0, sizeof(device_status_s));
+    memset(device_data, 0, sizeof(device_data_s));
+    memset(device_status, 0, sizeof(device_status_s));
 
-    /*
-    memset(&device_data.Accelerate, '0', sizeof(short)*3);
-    memset(&device_data.Gyroscope, '0', sizeof(short)*3);
-    device_data.WaterDepth = 0;
-    device_data.Temperature = 0;
-    device_data.WaterSpeed = 0;
-    device_data.WaterTankDepth = 0;
-    */
-    device_status.MotorGear = 's';
+    // 注意: 需要和上位机同步
+
+    // 主动力电机停机
+    device_status->MotorGear = 's';
+
+    // 打开警示灯
+    device_status->Cautionlight = 1;
+
+    // 检查接受缓冲区大小是否合格
+    if (RECESIZE != sizeof(receiving_package_s))
+    {
+        LED_WORKING_ROOT = 0;
+    }
 }
 
-int8_t Init_Device()
+int8_t init_device()
 {
-    // 初始化当前潜艇状态
-    init_device_status();
-    
     Delay_Init(72);
 
     // USART
@@ -68,27 +67,24 @@ int8_t Init_Device()
 
     // 水流计速器
     //S201C_Init();
-    
-    // 初始化所有传感器状态
-    ApplyControlSignal(&device_status);
-    
+
     // 启动自动发送模块
     SendingEnd_Init();
-    
+
     return 0;
 }
 
-void read_device_data()
+void read_device_data(device_data_s *device_data_p)
 {
     // TODO:检查全部状态
     //int8_t status;
-    
+
     // 温度传感器
-    device_data.Temperature =
+    device_data_p->Temperature =
         DS18B20_GetTemp_MatchRom(DS18B20ID);
 
     // 陀螺仪/加速度传感器
-    Read_MPU6050(device_data.Accelerate, device_data.Gyroscope);
+    Read_MPU6050(device_data_p->Accelerate, device_data_p->Gyroscope);
     //MPU6050ReadAcc(device_data.Accelerate);
     //MPU6050ReadGyro(device_data.Gyroscope);
     //MPU6050_ReturnTemp(&device_data.Temp);
@@ -97,7 +93,7 @@ void read_device_data()
     //device_data.distance = Measure_distance();
 
     // 获取水压传感器和水箱液面传感器的数值
-    Get_ADC1_Value(&device_data);
+    Get_ADC1_Value(device_data_p);
 }
 
 void report_device_data()
@@ -155,17 +151,13 @@ void test_send()
 
 //static int32_t send_index = 0;
 
-void EncapMsgSending(uint8_t data_type, char *send_str)
+void EncapMsgSending(uint8_t data_type, device_data_s *device_data_p, device_status_s *device_status_p, char *send_str)
 {
     // 设置发送报文头
     sending_header_s sh;
     sh.header[0] = '\n';
     sh.header[1] = '\n'; // 设置报文头
     sh.device_ID = 99;   // 设置潜艇编号
-
-    // 设置发送报文包
-    sending_package_s sp;
-    sp.header_p = &sh;
 
     // 数据类型为报文, 即包括了传感器数据和设备状态
     if (data_type == 0)
@@ -174,22 +166,16 @@ void EncapMsgSending(uint8_t data_type, char *send_str)
         sh.data_length =  // 设置发送数据长度(包括传感器数据和设备状态数据)
             sizeof(sending_header_s) + sizeof(device_data_s) + sizeof(device_status_s);
 
-        // 设置发送内容地址
-        sending_content_s sc;
-        sc.device_data_p = &device_data;
-        sc.device_status_p = &device_status;
-
-        sp.content_p = &sc;
-
         // 发送报文头+传感器数值+设备状态
         // 可能发的太快了, 可以加一个延时
-        Usart_SendByLength(USARTx, (char *)sp.header_p, sizeof(sending_header_s));
+        Usart_SendByLength(USART1, (char *)&sh, sizeof(sending_header_s));
         DELAY_MS(50);
-        Usart_SendByLength(USARTx, (char *)sp.content_p->device_data_p, sizeof(device_data_s));
+        Usart_SendByLength(USART1, (char *)device_data_p, sizeof(device_data_s));
         DELAY_MS(50);
-        Usart_SendByLength(USARTx, (char *)sp.content_p->device_status_p, sizeof(device_status_s));
+        Usart_SendByLength(USART1, (char *)device_status_p, sizeof(device_status_s));
     }
-    // 字符串数据
+
+    // 字符串数据, 忽略一般格式的报文内容, 仅使用字符串内容
     else if (data_type == 1)
     {
         if (send_str == NULL)
@@ -199,109 +185,77 @@ void EncapMsgSending(uint8_t data_type, char *send_str)
         sh.data_length = sizeof(sending_header_s) + strlen(send_str);
 
         // 设置发送报文包, 但是内容不设置,仅使用包头
-        Usart_SendByLength(USARTx, (char *)sp.header_p, sizeof(sending_header_s));
-        Usart_SendString(USARTx, send_str);
+        Usart_SendByLength(USART1, (char *)&sh, sizeof(sending_header_s));
+        Usart_SendString(USART1, send_str);
     }
-
-    //Usart_SendByte(USARTx, sp.tail);
-
-    //    send_index++;
-    //    if(send_index == 3)
-    //    {
-    //        while(1){}
-    //    }
 }
 
-void ApplyControlSignal(device_status_s *new_status)
+void apply_control_commmand(device_status_s *curr_status, device_status_s *new_status)
 {
-
-    //    printf("%d %d %d %d %d %d %d %d #", new_status->MotorGear,
-    //           new_status->Rudder0Angle,
-    //           new_status->Rudder1Angle,
-    //           new_status->Highbeam,
-    //           new_status->Taillight,
-    //           new_status->Headlight,
-    //           new_status->WaterIn,
-    //           new_status->WaterOut
-    //    );
-    
     // 调整主动力电机档位
-    if (device_status.MotorGear != new_status->MotorGear)
+    if (curr_status->MotorGear != new_status->MotorGear)
     {
         Engine_Control(new_status->MotorGear);
-        
-        device_status.MotorGear = get_curr_engine_status();
-        
-//        char test[20];
-//        sprintf(test, "m:%d",device_status.MotorGear);
-//        EncapMsgSending(1, test);
-        
+
+        curr_status->MotorGear = get_curr_engine_status();
     }
     // 调整舵机角度
-    if (device_status.Rudder0Angle != new_status->Rudder0Angle)
+    if (curr_status->Rudder0Angle != new_status->Rudder0Angle)
     {
-        device_status.Rudder0Angle = new_status->Rudder0Angle;
-        //action
-        
-        // test
-        set_angle(device_status.Rudder0Angle);
-        
-        char test[20];
-        sprintf(test, "m:%d",device_status.Rudder0Angle);
-        EncapMsgSending(1, test);
-        
-    }
-    if (device_status.Rudder1Angle != new_status->Rudder1Angle)
-    {
-        device_status.Rudder1Angle = new_status->Rudder1Angle;
-        // action
-    }
-    
-    // 调整远关灯
-    if (device_status.Highbeam != new_status->Highbeam)
-    {
-        device_status.Highbeam = new_status->Highbeam;
+        Rudder0_set_angle(curr_status->Rudder0Angle);
 
+        curr_status->Rudder0Angle = new_status->Rudder0Angle;
     }
-    // 调整尾灯
-    if (device_status.Taillight != new_status->Taillight)
+    if (curr_status->Rudder1Angle != new_status->Rudder1Angle)
     {
-        device_status.Taillight = new_status->Taillight;
-        // action
+        Rudder1_set_angle(curr_status->Rudder0Angle);
+
+        curr_status->Rudder1Angle = new_status->Rudder1Angle;
     }
-    // 调整前照灯
-    if (device_status.Headlight != new_status->Headlight)
+
+    // 调整远关灯
+    if (curr_status->Highbeam != new_status->Highbeam)
     {
-        device_status.Headlight = new_status->Headlight;
-        // action
+        if (new_status->Highbeam == 1)
+        {
+            LED_HIGHBEAM_ON;
+        }
+        else if (new_status->Highbeam == 0)
+        {
+            LED_HIGHBEAM_OFF;
+        }
+        curr_status->Highbeam = new_status->Highbeam;
+    }
+    // 调整警示灯
+    if (curr_status->Cautionlight != new_status->Cautionlight)
+    {
+        curr_status->Cautionlight = new_status->Cautionlight;
+
+        LED_CAUTION_ROOT = curr_status->Cautionlight;
     }
     // 设置进水口状态
-    if (new_status->WaterIn == 0 || new_status->WaterIn == 1)
+    if (new_status->WaterIn == 0 != new_status->WaterIn)
     {
-        device_status.WaterIn = new_status->WaterIn;
+        curr_status->WaterIn = new_status->WaterIn;
 
-        set_waterTank_IN_status(device_status.WaterIn);
-
-        //encap_msg_sending(1,"set in");
+        WaterTank_set_IN_status(curr_status->WaterIn);
     }
     // 设置出水口状态
-    if (new_status->WaterOut == 0 || new_status->WaterOut == 1)
+    if (new_status->WaterOut == 0 != new_status->WaterOut)
     {
-        device_status.WaterOut = new_status->WaterOut;
+        curr_status->WaterOut = new_status->WaterOut;
 
-        set_waterTank_OUT_status(device_status.WaterOut);
-
-        //encap_msg_sending(1,"set out");
+        WaterTank_set_OUT_status(curr_status->WaterOut);
     }
     // 设置系统状态
-    if (device_status.SystemStatus0 != new_status->SystemStatus0)
+    if (curr_status->SystemStatus0 != new_status->SystemStatus0)
     {
-        device_status.SystemStatus0 = new_status->SystemStatus0;
+        curr_status->SystemStatus0 = new_status->SystemStatus0;
     }
-    
-    if (device_status.SystemStatus1 != new_status->SystemStatus1)
+
+    if (curr_status->SystemStatus1 != new_status->SystemStatus1)
     {
-        device_status.SystemStatus1 = new_status->SystemStatus1;
+        curr_status->SystemStatus1 = new_status->SystemStatus1;
     }
 }
 
@@ -406,15 +360,15 @@ void Get_ADC1_Value(device_data_s *device_data)
         ;
     float AD_filtered_value[ADC_M]; // AD过滤后的值
     filter_ADC1_value(AD_filtered_value);
-    
+
     DMA_ClearFlag(DMA1_FLAG_TC1);
-    
+
     if (ADC_M < 4)
         return;
 
     device_data->WaterDepth0 = WaterDepth_Func(AD_filtered_value[0] * 3.3 / 4096);
     device_data->WaterDepth1 = WaterDepth_Func(AD_filtered_value[1] * 3.3 / 4096);
-    
+
     device_data->WaterTankDepth0 = WaterTankLevel_Func(AD_filtered_value[2] * 3.3 / 4096);
     device_data->WaterTankDepth1 = WaterTankLevel_Func(AD_filtered_value[3] * 3.3 / 4096);
 }
@@ -429,7 +383,7 @@ void filter_ADC1_value(float *AD_filtered_value)
         {
             value_tmp[j] = AD_value[j][i];
         }
-        
+
         AD_filtered_value[i] =
             MVA_Filtering(value_tmp, ADC_N);
     }
@@ -437,7 +391,7 @@ void filter_ADC1_value(float *AD_filtered_value)
 
 float WaterDepth_Func(float voltage)
 {
-    return voltage;//(voltage*426 - 411.415);
+    return voltage; //(voltage*426 - 411.415);
 }
 
 float WaterTankLevel_Func(float voltage)

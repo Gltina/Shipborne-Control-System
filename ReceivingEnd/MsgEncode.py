@@ -17,7 +17,11 @@ class MsgEncode:
     # 初始化时需要设置控制位的数量
     def __init__(self, control_signal_num) -> None:
         self.control_list = [int(0)] * control_signal_num
+        # 电机档位 uint8_t MotorGear
         self.control_list[0] = ord('s')
+        # LED警示灯 uint8_t Cautionlight
+        self.control_list[4] = 1
+
         pass
 
     # 生成可发送的字节流
@@ -65,17 +69,17 @@ class MsgEncode:
             self.control_list[2] = value
         elif key == "Highbeam":
             self.control_list[3] = value
-        elif key == "Taillight":
+        elif key == "Cautionlight":
             self.control_list[4] = value
-        elif key == "Headlight":
-            self.control_list[5] = value
         elif key == "WaterIn":
-            self.control_list[6] = value
+            self.control_list[5] = value
         elif key == "WaterOut":
-            self.control_list[7] = value
+            self.control_list[6] = value
         elif key == "SystemStatus0":
-            self.control_list[8] = value
+            self.control_list[7] = value
         elif key == "SystemStatus1":
+            self.control_list[8] = value
+        elif key == "SystemStatus2":
             self.control_list[9] = value
 
         # print("[From PC]", *self.control_list)

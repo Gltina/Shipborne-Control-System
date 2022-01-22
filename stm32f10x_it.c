@@ -3,7 +3,7 @@
   * @file    Project/STM32F10x_StdPeriph_Template/stm32f10x_it.c 
   * @author  MCD Application Team
   * @version V3.5.0
-  * @date    08-April-2011
+  * @date    22-Jan-2022
   * @brief   Main Interrupt Service Routines.
   *          This file provides template for all exceptions handler and 
   *          peripherals interrupt service routine.
@@ -23,41 +23,23 @@
   ******************************************************************************
   */
 
-/* Includes ------------------------------------------------------------------*/
 #include "stm32f10x_it.h"
-#include "DeviceManage/deviceManage.h"
+#include "LED/led.h"
 
-/** @addtogroup STM32F10x_StdPeriph_Template
-  * @{
-  */
-
-/* Private typedef -----------------------------------------------------------*/
-/* Private define ------------------------------------------------------------*/
-/* Private macro -------------------------------------------------------------*/
-/* Private variables ---------------------------------------------------------*/
-/* Private function prototypes -----------------------------------------------*/
-/* Private functions ---------------------------------------------------------*/
-
-/******************************************************************************/
-/*            Cortex-M3 Processor Exceptions Handlers                         */
-/******************************************************************************/
-
-// From deviceManage.h (from deviceManage.c)
-extern device_data_s device_data;
-//extern device_status_s device_status;
-
-// USART 数据发送模块
-#define ALARM_MAX_COUNT 2  // 最大允许警报次数
-#define WAITINGSECOND 5000 // 等待回应报文的毫秒数 ms
-
-static int8_t REPORT_DATA_STATUS = 0;   // 数据发送状态,只有0或1
-static uint32_t REPORT_TIM_CAPTURE = 0; // 等待周期,1次表示经过了2000次记数,也就是200ms
-static uint32_t ALARM_COUNT = 0;        // 已触发警报次数,收到新数据后清空
-static uint32_t ALARM_COUNT_TEST = 0;   // 用于测试的报警次数, 不清零,用于统计
+// 数据发送模块
+int8_t REPORT_DATA_STATUS = 0;   // 数据发送状态,只有0或1
+uint32_t REPORT_TIM_CAPTURE = 0; // 等待周期,1次表示经过了2000次记数,也就是200ms
+uint32_t ALARM_COUNT = 0;        // 已触发警报次数,收到新数据后清空
+uint32_t ALARM_COUNT_TEST = 0;   // 用于测试的报警次数, 不清零,用于统计
 
 // 数据接收模块
-#define RECESIZE 16
-static receiving_package_s receiving_package;
+int8_t REC_NUM = 2; // 之前已经读取了两个报文标识头 \n\n
+int8_t NEWLINE_FLAG = 0;
+int8_t RECEIVE_COMPLETED = 0;
+int8_t REC_DATA[RECESIZE] = {};
+
+// LED1 工作灯状态
+uint32_t LED_PERIOD[2] = {0, 0};
 
 void TIM2_IRQHandler(void)
 {
@@ -68,147 +50,64 @@ void TIM2_IRQHandler(void)
     *   验证: 2000*7200 / 36000000 = 0.2s
     */
 
-    // 首先检测是否超时
-    if (TIM_GetITStatus(SENDING_TIMX, TIM_IT_Update) != RESET)
+    // 发送完成后计时
+    if (TIM_GetITStatus(TIM2, TIM_IT_Update) != RESET) //发生计数器溢出更新中断
     {
-        // 超时处理, 此时出现信号接收异常的情况. 应该采用应急措施
-        if ((REPORT_TIM_CAPTURE * 200) > WAITINGSECOND) // 将$(REPORT_TIM_CAPTURE)转为毫秒
-        {
-            ALARM_COUNT++;
-            ALARM_COUNT_TEST++;
-
-            if (ALARM_COUNT == ALARM_MAX_COUNT)
-            {
-                LED_RED; // 紧急情况
-                while (1)
-                {
-                }
-            }
-            else // 第1此未按时收到数据
-            {
-                REPORT_DATA_STATUS = 0; // 再次尝试发送
-            }
-        }
-        else if (REPORT_TIM_CAPTURE == UINT32_MAX) // 避免等待时间过长(按照一个200ms一次中断计算,需要大约27年才会触发到这)
-        {
-            REPORT_TIM_CAPTURE = (WAITINGSECOND / 200);
-        }
-    }
- 
-    // 进入发送一般报文流程
-    if (TIM_GetITStatus(SENDING_TIMX, TIM_IT_Update) != RESET) //发生计数器溢出更新中断
-    {
-        if (REPORT_DATA_STATUS == 0) // 未发送,触发发送报文
-        {
-            LED_RGBOFF;
-
-            TIM_Cmd(SENDING_TIMX, DISABLE);  // 关闭计时, 避免发送时间过长导致再次溢出
-            TIM_SetCounter(SENDING_TIMX, 0); // 清除计数器
-            
-            // 发送一般报文
-            read_device_data();
-            EncapMsgSending(0, NULL);
-            // end
-            
-            TIM_ClearITPendingBit(SENDING_TIMX, TIM_IT_Update); //清除中断标志位, 避免开启定时器后再次进入定时器
-            TIM_Cmd(SENDING_TIMX, ENABLE);                      // 开启计时
-
-            REPORT_DATA_STATUS = 1; // 标记数据已发送
-            REPORT_TIM_CAPTURE = 0; // 发送后等待周期置空, 仅在发送报文后置零
-        }
-        else if (REPORT_DATA_STATUS == 1)
+        // 已发送报文数据
+        if (REPORT_DATA_STATUS == 1)
         {
             REPORT_TIM_CAPTURE++; // 发送后累加周期, 1次表示经过了2000次记数,也就是200ms
         }
-    }
 
-    TIM_ClearITPendingBit(SENDING_TIMX, TIM_IT_Update); //清除中断标志位
+        // 控制灯光周期
+        LED_PERIOD[0]++;
+        LED_PERIOD[1]++;
+
+        TIM_ClearITPendingBit(TIM2, TIM_IT_Update); //清除中断标志位
+    }
 }
 
 void USART1_IRQHandler(void)
 {
-    static int8_t newline_flag = 0;
-    static int8_t rec_num = 2; // 之前已经读取了两个报文标识头 \n\n
-    static int8_t rec_data[RECESIZE];
+    uint8_t status = 0;
 
-    // 检查接收长度
-    if (RECESIZE != sizeof(receiving_package_s))
+    if (USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)
     {
-        LED_RGBOFF;
-        LED_RED;
-        //while (1){}
-    }
-
-    uint32_t status = 0;
-
-    if (USART_GetITStatus(USARTx, USART_IT_RXNE) != RESET)
-    {
-        USART_ClearITPendingBit(USARTx, USART_IT_RXNE);
+        USART_ClearITPendingBit(USART1, USART_IT_RXNE);
         status = 1;
     }
-    else if (USART_GetFlagStatus(USARTx, USART_FLAG_ORE) == SET)
+    else if (USART_GetFlagStatus(USART1, USART_FLAG_ORE) == SET)
     {
-        USART_ClearFlag(USARTx, USART_FLAG_ORE);
+        USART_ClearFlag(USART1, USART_FLAG_ORE);
         status = 2;
     }
 
     // 收到即触发
     if (status == 1 || status == 2)
     {
-        uint8_t result = USART_ReceiveData(USARTx);
+        uint8_t result = USART_ReceiveData(USART1);
 
         // 已达成接收条件, 开始接收数据
-        if (newline_flag == 2)
+        if (NEWLINE_FLAG == 2)
         {
-            LED_RGBOFF;
+            //LED_WORKING_ON;
 
             // 补充前两字节
-            rec_data[0] = '\n';
-            rec_data[1] = '\n';
+            REC_DATA[0] = '\n';
+            REC_DATA[1] = '\n';
 
             // 从第三位开始填充
-            rec_data[rec_num++] = result;
+            REC_DATA[REC_NUM++] = result;
 
-            // 按照字节大小接收
-            if (rec_num == RECESIZE)
+            if (REC_NUM == RECESIZE)
             {
-                memcpy(&receiving_package, rec_data, sizeof(rec_data));
-                // 此时上位机数据接受完成
-                // 接受的串口缓冲区应该为空
-
-                // 应用新的状态指示
-                ApplyControlSignal(&receiving_package.device_status);
-
-#ifdef SHOW_TIME1
-                // 计算从发送报文到回应完全接收的耗时
-                char send_str[70];
-                const receiving_package_s *rp = &receiving_package;
-                uint32_t receive_delay = TIM_GetCapture4(SENDING_TIMX) + REPORT_TIM_CAPTURE * 2000;
-                sprintf(send_str, "ID:%d,Length:%d,[%c,%d,%d,%d,%d,%d,%d,%d,%d,%d] T1=%.3fs (alarm count:%d)",
-                        rp->device_ID, rp->data_length,
-                        rp->device_status.MotorGear,    rp->device_status.Rudder0Angle,
-                        rp->device_status.Rudder1Angle, rp->device_status.Highbeam,
-                        rp->device_status.Taillight,    rp->device_status.Headlight,
-                        rp->device_status.WaterIn,      rp->device_status.WaterOut,
-                        rp->device_status.SystemStatus0,rp->device_status.SystemStatus1,
-                        receive_delay / 10000.0, ALARM_COUNT_TEST);
-                EncapMsgSending(1, send_str);
-                memset(send_str, '\0', strlen(send_str));
-#endif //SHOW_TIME1
-
-                // 清理工作
-                memset((void *)rec_data, '\0', RECESIZE); // 清空接收区域
-                memset((void *)&receiving_package, '\0', sizeof(receiving_package)); // 清空实际接收报文
-                rec_num = 2;                              // 重置接收数量
-                newline_flag = 0;                         // 重置接收头标识
-
-                // 写数据时避免遇到发送报文定时器
-                while (TIM_GetITStatus(SENDING_TIMX, TIM_IT_Update) == RESET)
-                {
-                    // 等待SENDING_TIMX非中断时间, 尽量避免修改状态时被读取
-                }
-                REPORT_DATA_STATUS = 0; // 状态改为继续发送报告, 放置在最后变化
-                ALARM_COUNT = 0;        // 取消警报次数
+                /* 
+             * 按照字节大小接收
+             * 此时上位机数据接受完成
+             * 接受的串口缓冲区应该为空
+             * 
+            */
+                RECEIVE_COMPLETED = 1;
             }
             // 接受完成就退出当前函数
             return;
@@ -217,18 +116,18 @@ void USART1_IRQHandler(void)
         // 判断是否为接收头
         if (result == '\n')
         {
-            newline_flag += 1;
+            NEWLINE_FLAG += 1;
         }
         else
         {
-            newline_flag = 0;
+            NEWLINE_FLAG = 0;
         }
     }
 
-    if (USART_GetFlagStatus(USARTx, USART_FLAG_ORE) == SET)
+    if (USART_GetFlagStatus(USART1, USART_FLAG_ORE) == SET)
     {
-        USART_ClearFlag(USARTx, USART_FLAG_ORE);
-        USART_ReceiveData(USARTx);
+        USART_ClearFlag(USART1, USART_FLAG_ORE);
+        USART_ReceiveData(USART1);
     }
 }
 
@@ -327,7 +226,6 @@ void PendSV_Handler(void)
   */
 void SysTick_Handler(void)
 {
-   
 }
 
 /**

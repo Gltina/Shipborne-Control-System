@@ -47,7 +47,7 @@ void WaterTank_OUT_Close()
     GPIO_ResetBits(WATERTANK_DOOR_GPIOx, WATERTANK_DOOR_OUT_Pin);
 }
 
-void set_waterTank_IN_status(uint8_t status)
+void WaterTank_set_IN_status(uint8_t status)
 {
     if (status == 1)
     {
@@ -59,7 +59,7 @@ void set_waterTank_IN_status(uint8_t status)
     }
 }
 
-void set_waterTank_OUT_status(uint8_t status)
+void WaterTank_set_OUT_status(uint8_t status)
 {
     if (status == 1)
     {

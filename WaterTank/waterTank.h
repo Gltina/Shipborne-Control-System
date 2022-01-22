@@ -28,7 +28,7 @@ void WaterTank_OUT_Close();
 void Get_WaterTank_SensorData(float * s1, float *s2);
 void Get_WaterLevel_WaterTank(float * water_level_0, float *water_level_1);
 
-void set_waterTank_IN_status(uint8_t status);
-void set_waterTank_OUT_status(uint8_t status);
+void WaterTank_set_IN_status(uint8_t status);
+void WaterTank_set_OUT_status(uint8_t status);
 
 #endif

@@ -1,6 +1,6 @@
 #ifndef _DELAY_H_
 #define _DELAY_H_
- 
+
 #include "stm32f10x.h"
 
 #define DELAY_MS delay_ms

@@ -120,12 +120,12 @@ class MainWindow(QMainWindow):
         self.status_widget_list[1].setText("Rudder0Angle")
         self.status_widget_list[2].setText("Rudder1Angle")
         self.status_widget_list[3].setText("Highbeam")
-        self.status_widget_list[4].setText("Taillight")
-        self.status_widget_list[5].setText("Headlight")
-        self.status_widget_list[6].setText("WaterIn")
-        self.status_widget_list[7].setText("WaterOut")
-        self.status_widget_list[8].setText("SystemStatus0")
-        self.status_widget_list[9].setText("SystemStatus1")
+        self.status_widget_list[4].setText("Cautionlight")
+        self.status_widget_list[5].setText("WaterIn")
+        self.status_widget_list[6].setText("WaterOut")
+        self.status_widget_list[7].setText("SystemStatus0")
+        self.status_widget_list[8].setText("SystemStatus1")
+        self.status_widget_list[9].setText("SystemStatus2")
 
         Hlayout = QHBoxLayout()
         Hlayout.setSpacing(1)
@@ -226,14 +226,10 @@ class MainWindow(QMainWindow):
     def btn_send_click(self):
         input_value_list = self.get_command_input_widget_value()
         # 若输入的为空, 用read组件的替代
-        for index, item in enumerate(self.command_read_widget_list):
-            input_value = self.command_input_widget_list[index].text()
-            read_value = item.text()
-            if input_value == "":
-                # 用read组件的替代
-                self.command_input_widget_list[index] = read_value
-                # 修改获得的数组
-                input_value_list[index] = read_value
+        for index, item in enumerate(self.command_input_widget_list):
+            if item.text() == "":
+                return
+
         self.change_communication_lighting()
         MySerialShip.msg_encode.change_control_signal(
             "MotorGear", ord(str(input_value_list[0]).strip()[:1]))
@@ -255,7 +251,7 @@ class MainWindow(QMainWindow):
             "SystemStatus0", int(input_value_list[8].strip()))
         MySerialShip.msg_encode.change_control_signal(
             "SystemStatus1", int(input_value_list[9].strip()))
-        self.send_button.setEnabled(False)
+        # self.send_button.setEnabled(False)
 
     def get_command_input_widget_value(self):
         value_list = []
@@ -346,7 +342,7 @@ class MainWindow(QMainWindow):
             decode_result = MySerialShip.msg_decode.decode_msg(msg[0], msg[1])
             # print(decode_result)
             self.update_gui(msg[0], decode_result)
-            self.send_button.setEnabled(True)
+            # self.send_button.setEnabled(True)
 
         receive_update = threading.Timer(0.02, self.update_receive_data)
         receive_update.setDaemon(True)
