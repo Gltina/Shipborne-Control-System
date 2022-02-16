@@ -4,7 +4,6 @@ from MySerialShip import *
 from MsgDecode import *
 
 
-
 if __name__ == "__main__":
 
     # ³õÊ¼»¯´®¿Ú

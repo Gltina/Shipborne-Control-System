@@ -82,4 +82,4 @@ class MsgEncode:
         elif key == "SystemStatus2":
             self.control_list[9] = value
 
-        # print("[From PC]", *self.control_list)
+        # print("[From PC--]", *self.control_list)

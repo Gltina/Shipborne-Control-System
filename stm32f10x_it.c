@@ -82,11 +82,38 @@ void USART1_IRQHandler(void)
         status = 2;
     }
 
+    LED_WORKING_ON;
     // 收到即触发
     if (status == 1 || status == 2)
     {
         uint8_t result = USART_ReceiveData(USART1);
-
+        
+        // test code
+//        if(result == '1')
+//        {
+//            TIM_SetCompare1(TIM3, 1700);
+//        }
+//        else if(result == '2')
+//        {
+//            TIM_SetCompare1(TIM3, 2100);
+//        }
+//        else if(result == '3')
+//        {
+//            TIM_SetCompare1(TIM3, 2400);
+//        }
+//        else if(result == '4')
+//        {
+//            TIM_SetCompare2(TIM3, 1300);
+//        }
+//        else if(result == '5')
+//        {
+//            TIM_SetCompare2(TIM3, 1800);
+//        }
+//        else if(result == '6')
+//        {
+//            TIM_SetCompare2(TIM3, 2300);
+//        }
+        
         // 已达成接收条件, 开始接收数据
         if (NEWLINE_FLAG == 2)
         {
@@ -122,6 +149,8 @@ void USART1_IRQHandler(void)
         {
             NEWLINE_FLAG = 0;
         }
+
+
     }
 
     if (USART_GetFlagStatus(USART1, USART_FLAG_ORE) == SET)

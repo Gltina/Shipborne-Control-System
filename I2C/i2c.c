@@ -20,7 +20,7 @@ static void I2C_GPIO_Config(void)
 {
   GPIO_InitTypeDef GPIO_InitStructure;
 
-  /* 使能与 I2C1 有关的时钟 */
+  /* 使能与 I2C2 有关的时钟 */
   SENSORS_I2C_APBxClock_FUN(SENSORS_I2C_CLK, ENABLE);
   SENSORS_I2C_GPIO_APBxClock_FUN(SENSORS_I2C_GPIO_CLK, ENABLE);
 

@@ -1,5 +1,8 @@
 #include "rudderControl.h"
 
+uint16_t horizontal_initial_value = 2100;
+uint16_t vertical_initial_value = 1800;
+
 void MG90S_Init()
 {
     MG90S_GPIO_Init();
@@ -14,10 +17,13 @@ void MG90S_GPIO_Init(void)
 {
     GPIO_InitTypeDef GPIO_InitStructure;
     
-    RCC_APB2PeriphClockCmd(Rudder_CLK, ENABLE); //使能GPIO外设和AFIO复用功能模块时钟
-    GPIO_InitStructure.GPIO_Pin = Rudder0_GPIO_PIN;
+    RCC_APB2PeriphClockCmd(Rudder_CLK, ENABLE);
+    GPIO_InitStructure.GPIO_Pin = Rudder0_GPIO_PIN | Rudder1_GPIO_PIN;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_Init(Rudder0_GPIO_PORT, &GPIO_InitStructure);
+    
+    GPIO_InitStructure.GPIO_Pin = Rudder1_GPIO_PIN;
     GPIO_Init(Rudder0_GPIO_PORT, &GPIO_InitStructure);
 }
 
@@ -50,6 +56,11 @@ void MG90S_TIM_Init(u16 arr, u16 psc)
     TIM_OC2PreloadConfig(TIM3, TIM_OCPreload_Enable);
 
     TIM_ARRPreloadConfig(TIM3, ENABLE);
+    
+    // 恢复初始位置
+    TIM_SetCompare1(TIM3, horizontal_initial_value);
+    TIM_SetCompare2(TIM3, vertical_initial_value);
+    
     TIM_Cmd(TIM3, ENABLE); //使能TIM3
 }
 
@@ -57,15 +68,15 @@ void Rudder0_set_angle(uint8_t signal)
 {
     if (signal == 0)
     {
-        TIM_SetCompare1(TIM3, 500);
+        TIM_SetCompare1(TIM3, horizontal_initial_value);
     }
     else if (signal == 1)
     {
-        TIM_SetCompare1(TIM3, 1500);
+        TIM_SetCompare1(TIM3, 1750);
     }
     else if (signal == 2)
     {
-        TIM_SetCompare1(TIM3, 2500);
+        TIM_SetCompare1(TIM3, 2350);
     }
 }
 
@@ -73,15 +84,15 @@ void Rudder1_set_angle(uint8_t signal)
 {
     if (signal == 0)
     {
-        TIM_SetCompare2(TIM3, 500);
+        TIM_SetCompare2(TIM3, vertical_initial_value);
     }
     else if (signal == 1)
     {
-        TIM_SetCompare2(TIM3, 1500);
+        TIM_SetCompare2(TIM3, 1350);
     }
     else if (signal == 2)
     {
-        TIM_SetCompare2(TIM3, 2500);
+        TIM_SetCompare2(TIM3, 2250);
     }
 }
 

@@ -1,8 +1,7 @@
-
 #include "DeviceManage/deviceManage.h"
 #include "stm32f10x_it.h"
 
-//#define SHOW_TIME1
+#define SHOW_TIME1
 
 void process_sending(device_data_s *device_data_p, device_status_s *device_status_p);
 
@@ -16,7 +15,7 @@ int main(void)
     // 初始化潜艇状态和传感器数据
     device_data_s device_data; device_status_s device_status;
     init_device_status_data(&device_data, &device_status);
-
+    
     while (1)
     {
         // 处理接收数据
@@ -32,7 +31,13 @@ int main(void)
 
         LED_period_control(1, &LED_PERIOD[0]);
         LED_period_control(3, &LED_PERIOD[1]);
-    }
+        
+        // test 
+//        read_device_data(&device_data);
+//        //printf("%.2f\r\n",device_data.Temperature);
+//        printf("%d %d %d\r\n",device_data.Gyroscope[0],device_data.Gyroscope[1],device_data.Gyroscope[2]);
+//        DELAY_MS(1000);
+     }
 
     return 0;
 }

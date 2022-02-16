@@ -106,22 +106,22 @@ void change_engine_status(uint8_t instruction)
 	else if (instruction == '0')
 	{
 
-		TIM_SetCompare1(TIM1, 60);
+		TIM_SetCompare1(TIM1, 92);
 		TIM_SetCompare4(TIM1, 0);
 	}
 	else if (instruction == '1')
 	{
-		TIM_SetCompare1(TIM1, 70);
+		TIM_SetCompare1(TIM1, 94);
 		TIM_SetCompare4(TIM1, 0);
 	}
 	else if (instruction == '2')
 	{
-		TIM_SetCompare1(TIM1, 80);
+		TIM_SetCompare1(TIM1, 96);
 		TIM_SetCompare4(TIM1, 0);
 	}
 	else if (instruction == '3')
 	{
-		TIM_SetCompare1(TIM1, 90);
+		TIM_SetCompare1(TIM1, 98);
 		TIM_SetCompare4(TIM1, 0);
 	}
 	else if (instruction == '4')
@@ -134,24 +134,24 @@ void change_engine_status(uint8_t instruction)
 	else if (instruction == '5')
 	{
 		TIM_SetCompare1(TIM1, 0);
-		TIM_SetCompare4(TIM1, 60);
+		TIM_SetCompare4(TIM1, 92);
 	}
 	else if (instruction == '6')
 	{
 		TIM_SetCompare1(TIM1, 0);
-		TIM_SetCompare4(TIM1, 70);
+		TIM_SetCompare4(TIM1, 94);
 	}
 	else if (instruction == '7')
 	{
 
 		TIM_SetCompare1(TIM1, 0);
-		TIM_SetCompare4(TIM1, 80);
+		TIM_SetCompare4(TIM1, 96);
 	}
 	else if (instruction == '8')
 	{
 
 		TIM_SetCompare1(TIM1, 0);
-		TIM_SetCompare4(TIM1, 90);
+		TIM_SetCompare4(TIM1, 98);
 	}
 	else if (instruction == '9')
 	{

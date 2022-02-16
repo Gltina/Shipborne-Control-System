@@ -81,13 +81,10 @@ void read_device_data(device_data_s *device_data_p)
 
     // 温度传感器
     device_data_p->Temperature =
-        DS18B20_GetTemp_MatchRom(DS18B20ID);
+       DS18B20_GetTemp_MatchRom(DS18B20ID);
 
     // 陀螺仪/加速度传感器
     Read_MPU6050(device_data_p->Accelerate, device_data_p->Gyroscope);
-    //MPU6050ReadAcc(device_data.Accelerate);
-    //MPU6050ReadGyro(device_data.Gyroscope);
-    //MPU6050_ReturnTemp(&device_data.Temp);
 
     // 超声波传感器
     //device_data.distance = Measure_distance();
@@ -199,18 +196,22 @@ void apply_control_commmand(device_status_s *curr_status, device_status_s *new_s
 
         curr_status->MotorGear = get_curr_engine_status();
     }
+    DELAY_MS(50);
+    
     // 调整舵机角度
     if (curr_status->Rudder0Angle != new_status->Rudder0Angle)
     {
-        Rudder0_set_angle(curr_status->Rudder0Angle);
+        Rudder0_set_angle(new_status->Rudder0Angle);
 
         curr_status->Rudder0Angle = new_status->Rudder0Angle;
+    DELAY_MS(200);
     }
     if (curr_status->Rudder1Angle != new_status->Rudder1Angle)
     {
-        Rudder1_set_angle(curr_status->Rudder0Angle);
+        Rudder1_set_angle(new_status->Rudder1Angle);
 
         curr_status->Rudder1Angle = new_status->Rudder1Angle;
+    DELAY_MS(200);
     }
 
     // 调整远关灯
@@ -234,18 +235,22 @@ void apply_control_commmand(device_status_s *curr_status, device_status_s *new_s
         LED_CAUTION_ROOT = curr_status->Cautionlight;
     }
     // 设置进水口状态
-    if (new_status->WaterIn == 0 != new_status->WaterIn)
+    if (curr_status->WaterIn == 0 || curr_status->WaterIn == 1)
     {
         curr_status->WaterIn = new_status->WaterIn;
 
         WaterTank_set_IN_status(curr_status->WaterIn);
+        DELAY_MS(50);
     }
+    
     // 设置出水口状态
-    if (new_status->WaterOut == 0 != new_status->WaterOut)
+    if (curr_status->WaterOut == 0 || curr_status->WaterOut == 1)
     {
         curr_status->WaterOut = new_status->WaterOut;
 
         WaterTank_set_OUT_status(curr_status->WaterOut);
+      
+    DELAY_MS(50);
     }
     // 设置系统状态
     if (curr_status->SystemStatus0 != new_status->SystemStatus0)

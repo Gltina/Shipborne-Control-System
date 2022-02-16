@@ -240,17 +240,17 @@ class MainWindow(QMainWindow):
         MySerialShip.msg_encode.change_control_signal(
             "Highbeam", int(input_value_list[3].strip()))
         MySerialShip.msg_encode.change_control_signal(
-            "Taillight", int(input_value_list[4].strip()))
+            "Cautionlight", int(input_value_list[4].strip()))
         MySerialShip.msg_encode.change_control_signal(
-            "Headlight", int(input_value_list[5].strip()))
+            "WaterIn", int(input_value_list[5].strip()))
         MySerialShip.msg_encode.change_control_signal(
-            "WaterIn", int(input_value_list[6].strip()))
+            "WaterOut", int(input_value_list[6].strip()))
         MySerialShip.msg_encode.change_control_signal(
-            "WaterOut", int(input_value_list[7].strip()))
+            "SystemStatus0", int(input_value_list[7].strip()))
         MySerialShip.msg_encode.change_control_signal(
-            "SystemStatus0", int(input_value_list[8].strip()))
+            "SystemStatus1", int(input_value_list[8].strip()))
         MySerialShip.msg_encode.change_control_signal(
-            "SystemStatus1", int(input_value_list[9].strip()))
+            "SystemStatus2", int(input_value_list[9].strip()))
         # self.send_button.setEnabled(False)
 
     def get_command_input_widget_value(self):
@@ -356,7 +356,7 @@ class MainWindow(QMainWindow):
                 if i == 0:
                     # print((decode_result[12 + i]))
                     w.setText(str(chr(decode_result[12 + i])))
-
+                    # print(str(chr(decode_result[12 + i])))
                     # 使指令输入初始化一次
                     if self.init_gui:
                         self.command_input_widget_list[i].setText(
