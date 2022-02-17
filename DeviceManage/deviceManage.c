@@ -35,21 +35,21 @@ int8_t init_device()
     LED_Init();
 
     // I2C
-    I2C_Bus_Init();
+    //I2C_Bus_Init();
 
     //主电机初始化
     Engine775_Init();
 
     // DS18B20
-    while (DS18B20_Init())
-    {
-        printf("\r\n no ds18b20 exit \r\n");
-    }
-    DS18B20_ReadId(DS18B20ID);
+    //while (DS18B20_Init())
+    //{
+    //    EncapTextMsgSending("No ds18b20 exit \r\n");
+    //}
+    //DS18B20_ReadId(DS18B20ID);
 
     // MPU6050
-    MPU6050_Init();
-    MPU6050ReadID();
+    //MPU6050_Init();
+    //MPU6050ReadID();
 
     // 超声波传感器
     //SRF05_Init();
@@ -80,11 +80,11 @@ void read_device_data(device_data_s *device_data_p)
     //int8_t status;
 
     // 温度传感器
-    device_data_p->Temperature =
-       DS18B20_GetTemp_MatchRom(DS18B20ID);
+    //device_data_p->Temperature =
+    //   DS18B20_GetTemp_MatchRom(DS18B20ID);
 
     // 陀螺仪/加速度传感器
-    Read_MPU6050(device_data_p->Accelerate, device_data_p->Gyroscope);
+    //Read_MPU6050(device_data_p->Accelerate, device_data_p->Gyroscope);
 
     // 超声波传感器
     //device_data.distance = Measure_distance();
@@ -148,7 +148,7 @@ void test_send()
 
 //static int32_t send_index = 0;
 
-void EncapMsgSending(uint8_t data_type, device_data_s *device_data_p, device_status_s *device_status_p, char *send_str)
+void EncapMsgSending(uint8_t data_type, device_data_s *device_data_p, device_status_s *device_status_p, const char *send_str)
 {
     // 设置发送报文头
     sending_header_s sh;
@@ -402,4 +402,9 @@ float WaterDepth_Func(float voltage)
 float WaterTankLevel_Func(float voltage)
 {
     return voltage;
+}
+
+void EncapTextMsgSending(const char * text)
+{    
+    EncapMsgSending(1, NULL, NULL, text);
 }

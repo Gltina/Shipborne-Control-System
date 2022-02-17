@@ -48,14 +48,16 @@ uint8_t MPU6050ReadID(void)
     if (Re != 0x68)
     {
         #if MPU_DEBUG_ON
-        MPU_ERROR("MPU6050 dectected error!\r\n");
+        EncapTextMsgSending("MPU6050 dectected error!");
         #endif
         return 1;
     }
     else
     {
         #if MPU_DEBUG_ON
-        MPU_INFO("MPU6050 ID = %d\r\n", Re);
+        char text[50];
+        sprintf(text, "MPU6050 ID = %d\r\n", Re);
+        EncapTextMsgSending(text);
         #endif
         return 0;
     }

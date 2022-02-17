@@ -284,7 +284,7 @@ void I2C_WaitStandbyState(void)
 static uint8_t I2C_TIMEOUT_UserCallback(void)
 {
   /* Block communication and all processes */
-  MPU_ERROR("I2C Timeout error!");
+  EncapTextMsgSending("I2C Timeout error!\r\n");
 
   return 0;
 }

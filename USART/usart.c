@@ -82,7 +82,9 @@ uint32_t Usart_SendByte(USART_TypeDef *pUSARTx, uint8_t c)
     
 	/*等待发送完成 */
 	while (USART_GetFlagStatus(pUSARTx, USART_FLAG_TC) == RESET) {}
-    
+
+#ifdef USART_WIRELESS
+        
     USART_CACHE_INDEX ++;
     
     if(USART_CACHE_INDEX == 512)
@@ -92,6 +94,7 @@ uint32_t Usart_SendByte(USART_TypeDef *pUSARTx, uint8_t c)
         // 直到为1, 即lora缓冲区为空
         while(GPIO_ReadInputDataBit(USART_AUX_GPIO_PORT, USART_AUX_GPIO_PIN) == 0){}
     }
+#endif
 	
 	return 0;
 }
@@ -119,7 +122,7 @@ uint32_t Usart_SendHalfWord(USART_TypeDef *pUSARTx, uint16_t c)
 	return 0;
 }
 
-uint32_t Usart_SendString(USART_TypeDef *pUSARTx, char *str)
+uint32_t Usart_SendString(USART_TypeDef *pUSARTx, const char *str)
 {
 	uint32_t i = 0;
 	for (i = 0; str[i] != '\0'; ++i)

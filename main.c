@@ -32,6 +32,8 @@ int main(void)
         LED_period_control(1, &LED_PERIOD[0]);
         LED_period_control(3, &LED_PERIOD[1]);
         
+        //DELAY_MS(1000);
+        //DELAY_MS(1000);
         // test 
 //        read_device_data(&device_data);
 //        //printf("%.2f\r\n",device_data.Temperature);

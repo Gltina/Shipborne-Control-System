@@ -106,24 +106,24 @@ void right_TRIG_Start(void)
 
 float Measure_distance(void)
 {
-    printf("1\r\n");
+    //printf("1\r\n");
     while (GPIO_ReadInputDataBit(SRF05_GPIOx, SRF05_Echo_Pin) == 1)
     {
     } //等到ECHO为低电平，即返回的值成功后，才启动超声波。
 
-    printf("2\r\n");
+    //printf("2\r\n");
     right_TRIG_Start();
 
-    printf("3\r\n");
+    //printf("3\r\n");
     while (GPIO_ReadInputDataBit(SRF05_GPIOx, SRF05_Echo_Pin) == 0)
     {
     }                        //等到ECHO接收返回数据时，计时。
     TIM_SetCounter(TIM3, 0); //清零计数器
 
-    printf("4\r\n");
+    //printf("4\r\n");
     TIM_Cmd(TIM3, ENABLE); //使能定时器,开始计数
 
-    printf("5\r\n");
+    //printf("5\r\n");
     //uint16_t reture_value = 0;
     while (GPIO_ReadInputDataBit(SRF05_GPIOx, SRF05_Echo_Pin) == 1)
     {
@@ -131,7 +131,7 @@ float Measure_distance(void)
 
     TIM_Cmd(TIM3, DISABLE); //失能定时器,截止计数
 
-    printf("6\r\n");
+    //printf("6\r\n");
     return (TIM_GetCounter(TIM3)) / 1000000.0 * 340 / 2 * 100; //用时间计时单位cm
 }
 

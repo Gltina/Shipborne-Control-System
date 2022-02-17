@@ -164,7 +164,10 @@ void filter_ADC1_value(float *AD_filtered_value);
     当@data_type为1时需要提供@send_str
     需要仔细检查send_str的合法长度(需要\0结尾)
 */
-void EncapMsgSending(uint8_t data_type, device_data_s *device_data_p, device_status_s *device_status_p, char *send_str);
+void EncapMsgSending(uint8_t data_type, device_data_s *device_data_p, device_status_s *device_status_p, const char *send_str);
+
+// 打包文本信息, 直接发送
+void EncapTextMsgSending(const char * text);
 
 /*
     根据@new_status修改现有status
@@ -172,7 +175,6 @@ void EncapMsgSending(uint8_t data_type, device_data_s *device_data_p, device_sta
     @first_run: 
         1 会忽略@new_status, 而使用当前的状态, 一般用于初始化时使用
         0 使用上位机的状态指令
-    
 */
 void apply_control_commmand(device_status_s *curr_status, device_status_s *new_status);
 

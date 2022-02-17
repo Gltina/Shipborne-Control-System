@@ -21,6 +21,7 @@
 #define USART_RX_GPIO_PORT GPIOA
 
 #define USARTx USART1
+//#define USART_WIRELESS
 
 void NVIC_Configuration(void);
 
@@ -28,10 +29,11 @@ void USART_Configuration(void);
 
 uint32_t Usart_SendByte( USART_TypeDef * pUSARTx, uint8_t c);
 uint32_t Usart_SendHalfWord( USART_TypeDef * pUSARTx, uint16_t c);
-uint32_t Usart_SendString(USART_TypeDef * pUSARTx, char *str); 
+uint32_t Usart_SendString(USART_TypeDef * pUSARTx, const char *str); 
 uint32_t Usart_SendByLength(USART_TypeDef *pUSARTx, char *str, uint32_t length);
 
 int fputc(int ch, FILE *f);
 int fgetc(FILE *f);
+
 
 #endif
